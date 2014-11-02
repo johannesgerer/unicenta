@@ -35,9 +35,13 @@
   <target name="jar" depends="compile">
     <dirname file="${dist.jar}" property="dist.jar.dir"/>
     <mkdir dir="${dist.jar.dir}"/>
-		<!-- <copy todir="${dist.jar.dir}/lib/"> -->
-		<!-- 	<fileset dir="lib" includes="*.jar"/> -->
-		<!-- </copy> -->
+		<copy todir="${dist.jar.dir}/lib/">
+			<fileset dir="lib" />
+		</copy>
+		<copy todir="${dist.jar.dir}/">
+			<fileset dir="locales/${dist.locale}"/>
+			<file file="start.sh"/>
+		</copy>
     <jar destfile="${dist.jar}" basedir="${build.classes.dir}">
       <manifest>
         <attribute name="Main-Class" value="${main.class}"/>
