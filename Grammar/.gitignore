@@ -1,0 +1,4 @@
+*.tokens
+*.java
+*.class
+!source/**

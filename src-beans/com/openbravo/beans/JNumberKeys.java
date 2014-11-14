@@ -222,6 +222,11 @@ public class JNumberKeys extends javax.swing.JPanel {
         m_jCE.setMinimumSize(new java.awt.Dimension(66, 36));
         m_jCE.setPreferredSize(new java.awt.Dimension(66, 36));
         m_jCE.setRequestFocusEnabled(false);
+        m_jCE.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                m_jCEActionPerformed(evt);
+            }
+        });
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 0;
@@ -477,6 +482,10 @@ public class JNumberKeys extends javax.swing.JPanel {
         gridBagConstraints.insets = new java.awt.Insets(0, 5, 0, 0);
         add(m_jEquals, gridBagConstraints);
     }// </editor-fold>//GEN-END:initComponents
+
+    private void m_jCEActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_m_jCEActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_m_jCEActionPerformed
 
 
     // Variables declaration - do not modify//GEN-BEGIN:variables

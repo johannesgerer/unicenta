@@ -1,2 +1,6 @@
 /unicenta/nbproject/private/
-/unicenta/build/
+/unicenta/build/build
+dist
+build
+*.log
+*.jar

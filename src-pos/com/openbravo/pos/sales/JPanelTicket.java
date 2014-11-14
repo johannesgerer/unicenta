@@ -59,6 +59,8 @@ import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.ObjectInputStream;
+import java.io.PipedReader;
+import java.io.PipedWriter;
 import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -72,6 +74,14 @@ import net.sf.jasperreports.engine.*;
 import net.sf.jasperreports.engine.data.JRMapArrayDataSource;
 import net.sf.jasperreports.engine.design.JasperDesign;
 import net.sf.jasperreports.engine.xml.JRXmlLoader;
+import org.antlr.v4.runtime.ANTLRInputStream;
+import org.antlr.v4.runtime.BailErrorStrategy;
+import org.antlr.v4.runtime.CommonTokenStream;
+import org.antlr.v4.runtime.ParserRuleContext;
+import org.antlr.v4.runtime.Token;
+import org.antlr.v4.runtime.misc.NotNull;
+import org.antlr.v4.runtime.misc.ParseCancellationException;
+import org.antlr.v4.runtime.tree.ParseTreeWalker;
 
 /**
  *
@@ -115,7 +125,9 @@ public abstract class JPanelTicket extends JPanel implements JPanelView, BeanFac
     private int m_iNumberStatusInput;
     private int m_iNumberStatusPor;
     private StringBuffer m_sBarcode;
-            
+    
+    private StringBuffer m_sUnparsed;
+    
     private JTicketsBag m_ticketsbag;
     
     private SentenceList senttax;
@@ -191,6 +203,21 @@ public abstract class JPanelTicket extends JPanel implements JPanelView, BeanFac
         initComponents ();
     }
    
+    public static class MySalesBaseListener extends SalesBaseListener {
+        @Override public void exitPrice(@NotNull SalesParser.PriceContext ctx) {
+            System.out.println("exitPrice: "+Integer.toString(ctx.result));
+        }
+    }
+    
+    private ANTLRInputStream input;
+    private SalesLexer lexer ;
+    private CommonTokenStream tokens ;
+    private SalesParser parser ;
+    private ParserRuleContext tree ;
+    private ParseTreeWalker walker ;
+    private MySalesBaseListener extractor ;
+    private PipedWriter writer;
+    private PipedReader reader;
     /**
      *
      * @param app
@@ -198,7 +225,9 @@ public abstract class JPanelTicket extends JPanel implements JPanelView, BeanFac
      */
     @Override
     public void init(AppView app) throws BeanFactoryException {
-       
+        
+
+              
         m_App = app;
         restDB = new  RestaurantDBUtils(m_App);
        
@@ -764,6 +793,7 @@ public abstract class JPanelTicket extends JPanel implements JPanelView, BeanFac
         m_jPor.setText("");
         m_jPrice.setText("");
         m_sBarcode = new StringBuffer();
+        m_sUnparsed = new StringBuffer();
             
         m_iNumberStatus = NUMBER_INPUTZERO;
         m_iNumberStatusInput = NUMBERZERO;
@@ -871,10 +901,27 @@ public abstract class JPanelTicket extends JPanel implements JPanelView, BeanFac
     
     @SuppressWarnings("empty-statement")
     private void stateTransition(char cTrans) {
-
+        m_sUnparsed.append(cTrans);            
+        input=new ANTLRInputStream(m_sUnparsed.toString());
+        lexer = new SalesLexer(input);
+        tokens = new CommonTokenStream(lexer);
+        parser = new SalesParser(tokens);
+        parser.setErrorHandler(new BailErrorStrategy());
+        System.out.println("m_sUnparsed:" + m_sUnparsed.toString());
+        try{
+            tree = parser.line(); // parse one line
+            walker = new ParseTreeWalker(); // create standard walker
+            extractor = new MySalesBaseListener();       
+            walker.walk(extractor, tree); // initiate walk of tree with listener
+            m_sUnparsed=new StringBuffer();                        
+        }catch(ParseCancellationException e){
+            
+        }
+        if(true) return;
+        
         if ((cTrans == '\n') || (cTrans == '?')) {
             // Codigo de barras introducido
-            if (m_sBarcode.length() > 0) { 
+            if (m_sBarcode.length() > 0) {
 // added JDL 23.05.13                 
                 String sCode = m_sBarcode.toString();
  // added JDL 23.05.13 if stirng is longer than 10 remove the
