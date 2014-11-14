@@ -207,45 +207,7 @@ public abstract class JPanelTicket extends JPanel implements JPanelView, BeanFac
         
         initComponents ();
     }
-   public static class MyLexer extends SalesLexer {
-
-        public MyLexer(CharStream input) {
-            super(input);
-        }
-    @Override public void recover(LexerNoViableAltException e) {
-        throw e;
-    }
-   }
-    public static class MySalesBaseListener extends SalesBaseListener {
-        private final JPanelTicket parent;
-        public MySalesBaseListener(JPanelTicket parent){
-            this.parent=parent;
-        }
-        @Override public void exitPrice(@NotNull SalesParser.PriceContext ctx) {
-            System.out.println("Price: "+Integer.toString(ctx.result));
-        }
-        @Override public void exitArticle(@NotNull SalesParser.ArticleContext ctx) { 
-             System.out.println("Article: "+Integer.toString(ctx.result));
-        }
-        @Override public void exitAmount(@NotNull SalesParser.AmountContext ctx) { 
-             System.out.println("Amount: "+Integer.toString(ctx.result));
-        }
-        @Override public void exitCompleteLine(@NotNull SalesParser.CompleteLineContext ctx) { 
-            parent.m_sUnparsed=new StringBuffer();
-            System.out.println("Line Complete!");
-            
-        }	
-    }
     
-    private ANTLRInputStream input;
-    private MyLexer lexer ;
-    private CommonTokenStream tokens ;
-    private SalesParser parser ;
-    private SalesParser.LineContext line ;
-    private ParseTreeWalker walker ;
-    private MySalesBaseListener extractor ;
-    private PipedWriter writer;
-    private PipedReader reader;
     /**
      *
      * @param app
@@ -253,9 +215,6 @@ public abstract class JPanelTicket extends JPanel implements JPanelView, BeanFac
      */
     @Override
     public void init(AppView app) throws BeanFactoryException {
-        
-
-              
         m_App = app;
         restDB = new  RestaurantDBUtils(m_App);
        
@@ -929,22 +888,6 @@ public abstract class JPanelTicket extends JPanel implements JPanelView, BeanFac
     
     @SuppressWarnings("empty-statement")
     private void stateTransition(char cTrans) {
-        m_sUnparsed.append(cTrans);
-        input=new ANTLRInputStream(m_sUnparsed.toString());
-        lexer = new MyLexer(input);
-        tokens = new CommonTokenStream(lexer);
-        parser = new SalesParser(tokens);
-        parser.setErrorHandler(new BailErrorStrategy());
-        System.out.println("m_sUnparsed:" + m_sUnparsed.toString());
-        try{
-            line = parser.line(); // parse one line
-            walker = new ParseTreeWalker(); // create standard walker
-            extractor = new MySalesBaseListener(this);       
-            walker.walk(extractor, line); // initiate walk of tree with listener            
-        }catch(ParseCancellationException | LexerNoViableAltException e){
-            System.out.println(e.getMessage());
-            m_sUnparsed.deleteCharAt(m_sUnparsed.length()-1);
-        }                
         if(true) return;
         
         if ((cTrans == '\n') || (cTrans == '?')) {

@@ -5,7 +5,6 @@
         <data xmlns="http://www.netbeans.org/ns/j2se-project/3">
             <name>JavaProject2</name>
             <source-roots>
-                <root id="src.source.dir"/>
                 <root id="src.dir"/>
                 <root id="reports.dir"/>
                 <root id="src-beans.dir"/>
