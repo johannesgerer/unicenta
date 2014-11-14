@@ -17,6 +17,18 @@ public class SalesBaseListener implements SalesListener {
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
+	@Override public void enterCompleteLine(@NotNull SalesParser.CompleteLineContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitCompleteLine(@NotNull SalesParser.CompleteLineContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
 	@Override public void enterAmount(@NotNull SalesParser.AmountContext ctx) { }
 	/**
 	 * {@inheritDoc}
@@ -48,18 +60,6 @@ public class SalesBaseListener implements SalesListener {
 	 * <p>The default implementation does nothing.</p>
 	 */
 	@Override public void exitPrice(@NotNull SalesParser.PriceContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void enterLines(@NotNull SalesParser.LinesContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void exitLines(@NotNull SalesParser.LinesContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *

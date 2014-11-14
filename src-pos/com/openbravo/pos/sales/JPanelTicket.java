@@ -76,8 +76,13 @@ import net.sf.jasperreports.engine.design.JasperDesign;
 import net.sf.jasperreports.engine.xml.JRXmlLoader;
 import org.antlr.v4.runtime.ANTLRInputStream;
 import org.antlr.v4.runtime.BailErrorStrategy;
+import org.antlr.v4.runtime.BaseErrorListener;
+import org.antlr.v4.runtime.CharStream;
 import org.antlr.v4.runtime.CommonTokenStream;
+import org.antlr.v4.runtime.LexerNoViableAltException;
 import org.antlr.v4.runtime.ParserRuleContext;
+import org.antlr.v4.runtime.RecognitionException;
+import org.antlr.v4.runtime.Recognizer;
 import org.antlr.v4.runtime.Token;
 import org.antlr.v4.runtime.misc.NotNull;
 import org.antlr.v4.runtime.misc.ParseCancellationException;
@@ -202,18 +207,41 @@ public abstract class JPanelTicket extends JPanel implements JPanelView, BeanFac
         
         initComponents ();
     }
-   
-    public static class MySalesBaseListener extends SalesBaseListener {
-        @Override public void exitPrice(@NotNull SalesParser.PriceContext ctx) {
-            System.out.println("exitPrice: "+Integer.toString(ctx.result));
+   public static class MyLexer extends SalesLexer {
+
+        public MyLexer(CharStream input) {
+            super(input);
         }
+    @Override public void recover(LexerNoViableAltException e) {
+        throw e;
+    }
+   }
+    public static class MySalesBaseListener extends SalesBaseListener {
+        private final JPanelTicket parent;
+        public MySalesBaseListener(JPanelTicket parent){
+            this.parent=parent;
+        }
+        @Override public void exitPrice(@NotNull SalesParser.PriceContext ctx) {
+            System.out.println("Price: "+Integer.toString(ctx.result));
+        }
+        @Override public void exitArticle(@NotNull SalesParser.ArticleContext ctx) { 
+             System.out.println("Article: "+Integer.toString(ctx.result));
+        }
+        @Override public void exitAmount(@NotNull SalesParser.AmountContext ctx) { 
+             System.out.println("Amount: "+Integer.toString(ctx.result));
+        }
+        @Override public void exitCompleteLine(@NotNull SalesParser.CompleteLineContext ctx) { 
+            parent.m_sUnparsed=new StringBuffer();
+            System.out.println("Line Complete!");
+            
+        }	
     }
     
     private ANTLRInputStream input;
-    private SalesLexer lexer ;
+    private MyLexer lexer ;
     private CommonTokenStream tokens ;
     private SalesParser parser ;
-    private ParserRuleContext tree ;
+    private SalesParser.LineContext line ;
     private ParseTreeWalker walker ;
     private MySalesBaseListener extractor ;
     private PipedWriter writer;
@@ -901,22 +929,22 @@ public abstract class JPanelTicket extends JPanel implements JPanelView, BeanFac
     
     @SuppressWarnings("empty-statement")
     private void stateTransition(char cTrans) {
-        m_sUnparsed.append(cTrans);            
+        m_sUnparsed.append(cTrans);
         input=new ANTLRInputStream(m_sUnparsed.toString());
-        lexer = new SalesLexer(input);
+        lexer = new MyLexer(input);
         tokens = new CommonTokenStream(lexer);
         parser = new SalesParser(tokens);
         parser.setErrorHandler(new BailErrorStrategy());
         System.out.println("m_sUnparsed:" + m_sUnparsed.toString());
         try{
-            tree = parser.line(); // parse one line
+            line = parser.line(); // parse one line
             walker = new ParseTreeWalker(); // create standard walker
-            extractor = new MySalesBaseListener();       
-            walker.walk(extractor, tree); // initiate walk of tree with listener
-            m_sUnparsed=new StringBuffer();                        
-        }catch(ParseCancellationException e){
-            
-        }
+            extractor = new MySalesBaseListener(this);       
+            walker.walk(extractor, line); // initiate walk of tree with listener            
+        }catch(ParseCancellationException | LexerNoViableAltException e){
+            System.out.println(e.getMessage());
+            m_sUnparsed.deleteCharAt(m_sUnparsed.length()-1);
+        }                
         if(true) return;
         
         if ((cTrans == '\n') || (cTrans == '?')) {

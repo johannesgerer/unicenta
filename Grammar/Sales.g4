@@ -5,16 +5,22 @@
 
 grammar Sales;
 
-lines: (line)+ ;
-line:  amount? price ArticleKey
+line:  completeLine
+    |  article amount? price?
+    |  asd;
+
+asd: amount? price;
+
+completeLine:  amount? price ArticleKey
 		|  article amount? price Enter;
 
-amount: INT '*' ;
-article: INT '/' ;
-price returns [int result] : INT {$result = $INT.int;}  ;
+amount  returns [int result] : INT '*' {$result = $INT.int;};
+article returns [int result] : INT '/' {$result = $INT.int;};
+price   returns [int result] : INT {$result = $INT.int;};
 
 INT : [0-9]+ ; 
-Enter: [\r\n]+ ;
+Enter: [\r\n]+ ;  //the existence of this token will lead to the following wrong match without any error:
+// '35\n' == (line (asd (price 35)))
 
 ArticleKey: [a-zA-Z] ;
 

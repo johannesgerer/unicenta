@@ -9,6 +9,16 @@ import org.antlr.v4.runtime.tree.ParseTreeListener;
  */
 public interface SalesListener extends ParseTreeListener {
 	/**
+	 * Enter a parse tree produced by {@link SalesParser#completeLine}.
+	 * @param ctx the parse tree
+	 */
+	void enterCompleteLine(@NotNull SalesParser.CompleteLineContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link SalesParser#completeLine}.
+	 * @param ctx the parse tree
+	 */
+	void exitCompleteLine(@NotNull SalesParser.CompleteLineContext ctx);
+	/**
 	 * Enter a parse tree produced by {@link SalesParser#amount}.
 	 * @param ctx the parse tree
 	 */
@@ -38,16 +48,6 @@ public interface SalesListener extends ParseTreeListener {
 	 * @param ctx the parse tree
 	 */
 	void exitPrice(@NotNull SalesParser.PriceContext ctx);
-	/**
-	 * Enter a parse tree produced by {@link SalesParser#lines}.
-	 * @param ctx the parse tree
-	 */
-	void enterLines(@NotNull SalesParser.LinesContext ctx);
-	/**
-	 * Exit a parse tree produced by {@link SalesParser#lines}.
-	 * @param ctx the parse tree
-	 */
-	void exitLines(@NotNull SalesParser.LinesContext ctx);
 	/**
 	 * Enter a parse tree produced by {@link SalesParser#article}.
 	 * @param ctx the parse tree
