@@ -46,9 +46,13 @@ public class Parsec {
         Parser<Integer> amount=Parsers.longer(
                     Parsers.sequence(Int,Scanners.isChar('*'),(Integer i,Void v) -> i)
                     ,One);
-        Parser<Integer> article=Parsers.sequence(Int,Scanners.isChar('/'),(Integer i,Void v) -> i);
+        Parser<Integer> article=Parsers.sequence(Int,Scanners.isChar('/'),(Integer i,Void v) -> 
+        {
+            System.out.println("Article: "+String.valueOf(i));
+            return i;});
+        
         Parser<Integer> price=Int;
-        Parser<Integer> articleKey=Scanners.IDENTIFIER.map((String s)-> Character.getNumericValue(s.charAt(0))); //Scanners.isChar(CharPredicates.IS_ALPHA);
+        Parser<Integer> articleKey=Scanners.IDENTIFIER.map((String s)-> Character.getNumericValue(s.charAt(0)));
         Parser<Line> shortForm=Parsers.sequence(amount,price,articleKey,Scanners.isChar('\n')
                 ,(Integer am,Integer p,Integer ar,Void v)-> new Line(p,ar,am));
         Parser<Line> longForm=Parsers.sequence(article,amount,price,

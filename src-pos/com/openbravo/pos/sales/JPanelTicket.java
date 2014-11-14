@@ -59,8 +59,6 @@ import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.ObjectInputStream;
-import java.io.PipedReader;
-import java.io.PipedWriter;
 import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -74,19 +72,10 @@ import net.sf.jasperreports.engine.*;
 import net.sf.jasperreports.engine.data.JRMapArrayDataSource;
 import net.sf.jasperreports.engine.design.JasperDesign;
 import net.sf.jasperreports.engine.xml.JRXmlLoader;
-import org.antlr.v4.runtime.ANTLRInputStream;
-import org.antlr.v4.runtime.BailErrorStrategy;
-import org.antlr.v4.runtime.BaseErrorListener;
-import org.antlr.v4.runtime.CharStream;
-import org.antlr.v4.runtime.CommonTokenStream;
-import org.antlr.v4.runtime.LexerNoViableAltException;
-import org.antlr.v4.runtime.ParserRuleContext;
-import org.antlr.v4.runtime.RecognitionException;
-import org.antlr.v4.runtime.Recognizer;
-import org.antlr.v4.runtime.Token;
-import org.antlr.v4.runtime.misc.NotNull;
-import org.antlr.v4.runtime.misc.ParseCancellationException;
-import org.antlr.v4.runtime.tree.ParseTreeWalker;
+import org.codehaus.jparsec.Parser;
+import org.codehaus.jparsec.Parsers;
+import org.codehaus.jparsec.Scanners;
+import org.codehaus.jparsec.error.ParserException;
 
 /**
  *
@@ -201,6 +190,7 @@ public abstract class JPanelTicket extends JPanel implements JPanelView, BeanFac
     private Boolean warrantyPrint=false;
 //   private String loyaltyCardNumber=null;
     
+    private Parser<Boolean> parser;
     
     /** Creates new form JTicketView */
     public JPanelTicket() {
@@ -215,6 +205,47 @@ public abstract class JPanelTicket extends JPanel implements JPanelView, BeanFac
      */
     @Override
     public void init(AppView app) throws BeanFactoryException {
+        Parser<Integer> Int=Scanners.INTEGER.map((String from) -> Integer.parseInt(from));
+        
+        Parser<Void> always=Parsers.always();
+        Parser<Integer> One=always.map((Void v) -> 1);
+        Parser<String> Empty=always.map((Void v) -> "");
+                
+        Parser<Void> amount=Parsers.longer(
+                    Parsers.sequence(Int,Scanners.isChar('*'),(Integer i,Void v) -> i)
+                    ,One).map((Integer i)->{
+                    System.out.println("Amount: "+String.valueOf(i));
+                    return null;
+                    });
+        Parser<Void> article=Parsers.sequence(Int,Scanners.isChar('/'),
+                (Integer i,Void v) -> {
+                    System.out.println("Article: "+String.valueOf(i));
+                    return null;
+                });        
+        
+        Parser<Boolean> open=Parsers.or(Scanners.INTEGER,Empty).map((String from) -> 
+                {m_jPrice.setText(from);return false;}
+                );
+        
+        
+        Parser<Void> price=Int.map((Integer i) -> {
+            System.out.println("Price: "+String.valueOf(i));
+            return null;});
+        Parser<Boolean> articleKey=Scanners.IDENTIFIER.map((String s)-> {
+                System.out.println("Article: "+s);
+                return true;});
+        Parser<Boolean> shortForm=Parsers.sequence(amount,
+                Parsers.or(Parsers.sequence(price,articleKey),open)
+                //,(Integer am,Integer p,Integer ar,Void v)-> new Line(p,ar,am)
+            );
+        Parser<Boolean> longForm=Parsers.sequence(article,amount,
+                Parsers.or(
+                        Parsers.sequence(price,Scanners.isChar('\n').map((Void v)->true))
+                        ,open)
+                //,(Integer am,Integer p,Integer ar,Void v)-> new Line(p,ar,am)
+            );
+        parser = Parsers.longer(shortForm,longForm);
+        
         m_App = app;
         restDB = new  RestaurantDBUtils(m_App);
        
@@ -888,6 +919,22 @@ public abstract class JPanelTicket extends JPanel implements JPanelView, BeanFac
     
     @SuppressWarnings("empty-statement")
     private void stateTransition(char cTrans) {
+        m_sUnparsed.append(cTrans);
+        Boolean success=false;
+        System.out.println("m_sUnparsed: "+m_sUnparsed);
+        
+         try{
+             success=parser.parse(m_sUnparsed);
+         }
+         catch(ParserException e){             
+             //if(e.getErrorDetails().getIndex()!=m_sUnparsed.length())
+            m_sUnparsed.deleteCharAt(m_sUnparsed.length()-1);
+            System.out.println(e);
+         }
+         if(success){
+             System.out.println("Line complete");
+             m_sUnparsed = new StringBuffer();
+         }
         if(true) return;
         
         if ((cTrans == '\n') || (cTrans == '?')) {
@@ -2330,17 +2377,6 @@ if (pickupSize!=null && (Integer.parseInt(pickupSize) >= tmpPickupId.length())){
 
     }//GEN-LAST:event_m_jEditLineActionPerformed
 
-    private void m_jEnterActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_m_jEnterActionPerformed
-
-        stateTransition('\n');
-
-    }//GEN-LAST:event_m_jEnterActionPerformed
-
-    private void m_jNumberKeysKeyPerformed(com.openbravo.beans.JNumberEvent evt) {//GEN-FIRST:event_m_jNumberKeysKeyPerformed
-
-        stateTransition(evt.getKey());
-    }//GEN-LAST:event_m_jNumberKeysKeyPerformed
-
     private void m_jKeyFactoryKeyTyped(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_m_jKeyFactoryKeyTyped
 
         m_jKeyFactory.setText(null);
@@ -2525,6 +2561,16 @@ m_App.getAppUserView().showTask("com.openbravo.pos.customers.CustomersPanel");
                 }    
 
     }//GEN-LAST:event_j_btnKitchenPrtActionPerformed
+
+    private void m_jEnterActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_m_jEnterActionPerformed
+
+        stateTransition('\n');
+    }//GEN-LAST:event_m_jEnterActionPerformed
+
+    private void m_jNumberKeysKeyPerformed(com.openbravo.beans.JNumberEvent evt) {//GEN-FIRST:event_m_jNumberKeysKeyPerformed
+
+        stateTransition(evt.getKey());
+    }//GEN-LAST:event_m_jNumberKeysKeyPerformed
 
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
