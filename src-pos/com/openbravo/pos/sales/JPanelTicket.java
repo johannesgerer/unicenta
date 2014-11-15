@@ -72,10 +72,6 @@ import net.sf.jasperreports.engine.*;
 import net.sf.jasperreports.engine.data.JRMapArrayDataSource;
 import net.sf.jasperreports.engine.design.JasperDesign;
 import net.sf.jasperreports.engine.xml.JRXmlLoader;
-import org.codehaus.jparsec.Parser;
-import org.codehaus.jparsec.Parsers;
-import org.codehaus.jparsec.Scanners;
-import org.codehaus.jparsec.error.ParserException;
 
 /**
  *
@@ -190,7 +186,6 @@ public abstract class JPanelTicket extends JPanel implements JPanelView, BeanFac
     private Boolean warrantyPrint=false;
 //   private String loyaltyCardNumber=null;
     
-    private Parser<Boolean> parser;
     
     /** Creates new form JTicketView */
     public JPanelTicket() {
@@ -205,47 +200,6 @@ public abstract class JPanelTicket extends JPanel implements JPanelView, BeanFac
      */
     @Override
     public void init(AppView app) throws BeanFactoryException {
-        Parser<Integer> Int=Scanners.INTEGER.map((String from) -> Integer.parseInt(from));
-        
-        Parser<Void> always=Parsers.always();
-        Parser<Integer> One=always.map((Void v) -> 1);
-        Parser<String> Empty=always.map((Void v) -> "");
-                
-        Parser<Void> amount=Parsers.longer(
-                    Parsers.sequence(Int,Scanners.isChar('*'),(Integer i,Void v) -> i)
-                    ,One).map((Integer i)->{
-                    System.out.println("Amount: "+String.valueOf(i));
-                    return null;
-                    });
-        Parser<Void> article=Parsers.sequence(Int,Scanners.isChar('/'),
-                (Integer i,Void v) -> {
-                    System.out.println("Article: "+String.valueOf(i));
-                    return null;
-                });        
-        
-        Parser<Boolean> open=Parsers.or(Scanners.INTEGER,Empty).map((String from) -> 
-                {m_jPrice.setText(from);return false;}
-                );
-        
-        
-        Parser<Void> price=Int.map((Integer i) -> {
-            System.out.println("Price: "+String.valueOf(i));
-            return null;});
-        Parser<Boolean> articleKey=Scanners.IDENTIFIER.map((String s)-> {
-                System.out.println("Article: "+s);
-                return true;});
-        Parser<Boolean> shortForm=Parsers.sequence(amount,
-                Parsers.or(Parsers.sequence(price,articleKey),open)
-                //,(Integer am,Integer p,Integer ar,Void v)-> new Line(p,ar,am)
-            );
-        Parser<Boolean> longForm=Parsers.sequence(article,amount,
-                Parsers.or(
-                        Parsers.sequence(price,Scanners.isChar('\n').map((Void v)->true))
-                        ,open)
-                //,(Integer am,Integer p,Integer ar,Void v)-> new Line(p,ar,am)
-            );
-        parser = Parsers.longer(shortForm,longForm);
-        
         m_App = app;
         restDB = new  RestaurantDBUtils(m_App);
        
@@ -816,7 +770,44 @@ public abstract class JPanelTicket extends JPanel implements JPanelView, BeanFac
         m_iNumberStatus = NUMBER_INPUTZERO;
         m_iNumberStatusInput = NUMBERZERO;
         m_iNumberStatusPor = NUMBERZERO;
+        
         repaint();
+    }
+    
+    private void setLineState(String current){
+        int i = m_ticketlines.getSelectedIndex();
+        if (i < 0)            return;
+
+        TicketLineInfo newline = new TicketLineInfo(m_oTicket.getLine(i));
+        
+        newline.setMultiply(futureAmount);
+        futureAmount = 1;
+        
+        Double price = newline.getPrice();
+        if (current.length() > 0) {
+            price = Double.parseDouble(current) / 100;            
+        }         
+
+        newline.setPrice(price);
+        paintTicketLine(i, newline);        
+    }
+    
+    private void incProductByRef(String sRef) {
+    // precondicion: sRef != null
+        try {
+            ProductInfoExt oProduct = dlSales.getProductInfoByReference(sRef);
+            if (oProduct == null) {                  
+                Toolkit.getDefaultToolkit().beep();                   
+                new MessageInf(MessageInf.SGN_WARNING, AppLocal.getIntString("message.noproduct")).show(this);           
+                stateToZero();
+            } else {
+                // Se anade directamente una unidad con el precio y todo
+                incProduct(oProduct);
+            }
+        } catch (BasicException eData) {
+            stateToZero();           
+            new MessageInf(eData).show(this);           
+        }
     }
     
     private void incProductByCode(String sCode) {
@@ -890,6 +881,11 @@ public abstract class JPanelTicket extends JPanel implements JPanelView, BeanFac
  
     
     private void incProduct(double dPor, ProductInfoExt prod) {
+        if(true){ //make sure every product gets inserted with price 0
+            addTicketLine(prod, dPor, 0);
+            return;
+        }
+        
         // precondicion: prod != null
         if (prod.isVprice()){
             addTicketLine(prod, getPorValue(), getInputValue());    
@@ -898,7 +894,8 @@ public abstract class JPanelTicket extends JPanel implements JPanelView, BeanFac
         }
       
     }
-       
+      
+    
     /**
      *
      * @param prod
@@ -917,26 +914,51 @@ public abstract class JPanelTicket extends JPanel implements JPanelView, BeanFac
         }       
     }
     
+    private Integer futureAmount=1;
+    
     @SuppressWarnings("empty-statement")
-    private void stateTransition(char cTrans) {
-        m_sUnparsed.append(cTrans);
-        Boolean success=false;
-        System.out.println("m_sUnparsed: "+m_sUnparsed);
+    private void stateTransition(char cTrans) {        
+        if(true){
+        String sTrans = String.valueOf(cTrans);
+
+        String current = m_jPrice.getText();
+        System.out.println(sTrans);
+        if ("0123456789".contains(sTrans)) { //add digits to the current textbox
+            m_jPrice.setText(current + sTrans);
+            return;
+        }
         
-         try{
-             success=parser.parse(m_sUnparsed);
-         }
-         catch(ParserException e){             
-             //if(e.getErrorDetails().getIndex()!=m_sUnparsed.length())
-            m_sUnparsed.deleteCharAt(m_sUnparsed.length()-1);
-            System.out.println(e);
-         }
-         if(success){
-             System.out.println("Line complete");
-             m_sUnparsed = new StringBuffer();
-         }
-        if(true) return;
+        int i = m_ticketlines.getSelectedIndex();
+        Boolean stateWaitingForPrice = i >= 0 &&
+                new TicketLineInfo(m_oTicket.getLine(i)).getPrice() == 0;
+
+        System.out.println("stateWaitingForPrice: "+stateWaitingForPrice);
         
+        switch (cTrans) {
+            case '/': //interpret as article number
+                if (stateWaitingForPrice || current.length() == 0) 
+                    return;
+                incProductByCode(current);
+                m_jPrice.setText("");
+                setLineState("");
+                return;
+            case '*': //intepret as amount
+                if (current.length() == 0) return;
+                futureAmount = Integer.parseInt(current);
+                m_jPrice.setText("");
+                return;
+            case '\n': //register price and amount
+                m_jPrice.setText("");
+                setLineState(current);
+                return;
+            default: //interpret as hotkey article reference
+                if (stateWaitingForPrice) return;                
+                incProductByRef(sTrans);
+                setLineState(current);
+                return;
+        }}
+        Logger.getLogger(JPanelTicket.class.getName()).log(Level.SEVERE, "stateTransition not handled!!!");
+
         if ((cTrans == '\n') || (cTrans == '?')) {
             // Codigo de barras introducido
             if (m_sBarcode.length() > 0) {
