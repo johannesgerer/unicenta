@@ -57,6 +57,17 @@ public class JTicketsBagShared extends JTicketsBag {
         initComponents();
     }
     
+    public void processKey(char c){
+        switch(c){
+            case '.': //new sale
+                m_jNewTicket.doClick();
+                return;
+            case ',': //cancel sale
+                m_jDelTicket.doClick();
+                return;
+        }
+    }           
+    
     /**
      *
      */

@@ -37,6 +37,7 @@ import javax.swing.event.ListSelectionListener;
 public class JPanelTicketSales extends JPanelTicket {
 
     private CatalogSelector m_cat;
+    private Boolean disable_cat=true;
    
     /** Creates a new instance of JPanelTicketSales */
     public JPanelTicketSales() {        
@@ -49,6 +50,7 @@ public class JPanelTicketSales extends JPanelTicket {
     @Override
     public void init(AppView app) {
         super.init(app);
+        if(disable_cat) return;
         m_ticketlines.addListSelectionListener(new CatalogSelectionListener());
     }
     
@@ -67,6 +69,7 @@ public class JPanelTicketSales extends JPanelTicket {
      */
     @Override
     protected Component getSouthComponent() {
+        if(disable_cat) return null;
         m_cat = new JCatalog(dlSales,
                 "true".equals(m_jbtnconfig.getProperty("pricevisible")),
                 "true".equals(m_jbtnconfig.getProperty("taxesincluded")),
@@ -86,6 +89,7 @@ public class JPanelTicketSales extends JPanelTicket {
      */
     @Override
     protected void resetSouthComponent() {
+        if(disable_cat) return;
         m_cat.showCatalogPanel(null);
     }
     
@@ -105,6 +109,7 @@ public class JPanelTicketSales extends JPanelTicket {
     @Override
     public void activate() throws BasicException {      
         super.activate();
+        if(disable_cat) return;
         m_cat.loadCatalog();
     }      
     
@@ -128,6 +133,7 @@ public class JPanelTicketSales extends JPanelTicket {
                         i--;
                     }
 
+                    if(disable_cat) return;
                     // Show the accurate catalog panel...
                     if (i >= 0) {
                         m_cat.showCatalogPanel(m_oTicket.getLine(i).getProductID());

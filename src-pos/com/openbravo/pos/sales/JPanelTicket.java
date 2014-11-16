@@ -26,6 +26,7 @@ import com.openbravo.data.gui.ComboBoxValModel;
 import com.openbravo.data.gui.ListKeyed;
 import com.openbravo.data.gui.MessageInf;
 import com.openbravo.data.loader.SentenceList;
+import com.openbravo.format.Formats;
 import com.openbravo.pos.customers.CustomerInfoExt;
 import com.openbravo.pos.customers.DataLogicCustomers;
 import com.openbravo.pos.customers.JCustomerFinder;
@@ -38,6 +39,7 @@ import com.openbravo.pos.payment.JPaymentSelectRefund;
 import com.openbravo.pos.printer.TicketParser;
 import com.openbravo.pos.printer.TicketPrinterException;
 import com.openbravo.pos.sales.restaurant.RestaurantDBUtils;
+import com.openbravo.pos.sales.shared.JTicketsBagShared;
 import com.openbravo.pos.scale.ScaleException;
 import com.openbravo.pos.scripting.ScriptEngine;
 import com.openbravo.pos.scripting.ScriptException;
@@ -55,6 +57,7 @@ import java.awt.CardLayout;
 import java.awt.Component;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
+import java.awt.event.KeyEvent;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.io.InputStream;
@@ -200,6 +203,7 @@ public abstract class JPanelTicket extends JPanel implements JPanelView, BeanFac
      */
     @Override
     public void init(AppView app) throws BeanFactoryException {
+        
         m_App = app;
         restDB = new  RestaurantDBUtils(m_App);
        
@@ -228,7 +232,9 @@ public abstract class JPanelTicket extends JPanel implements JPanelView, BeanFac
             // use '00' instead of '.'
             m_jNumberKeys.dotIs00(true);
         }
-           
+
+        jAmount.setText("1");
+        
         m_ticketsbag = getJTicketsBag();
         m_jPanelBag.add(m_ticketsbag.getBagComponent(), BorderLayout.LINE_START);
         add(m_ticketsbag.getNullComponent(), "null");
@@ -237,13 +243,25 @@ public abstract class JPanelTicket extends JPanel implements JPanelView, BeanFac
         m_jPanelCentral.add(m_ticketlines, java.awt.BorderLayout.CENTER);
         
         m_TTP = new TicketParser(m_App.getDeviceTicket(), dlSystem);
-               
+        
         // Los botones configurables...
         m_jbtnconfig = new JPanelButtons("Ticket.Buttons", this);
         m_jButtonsExt.add(m_jbtnconfig);           
-       
+        
+        //disable buttons
+        m_jOptions.remove(m_jButtons);
+        jPanel1.remove(j_btnKitchenPrt);
+        m_jButtonsExt.remove(m_jbtnconfig);
+        m_jButtonsExt.remove(m_jbtnconfig);
+        jPanel2.remove(m_jEditLine);
+        jPanel2.remove(m_jList);
+        jPanel2.remove(jEditAttributes);
+        m_jPanContainer.remove(m_jContEntries);
+        
         // El panel de los productos o de las lineas...        
-        catcontainer.add(getSouthComponent(), BorderLayout.CENTER);
+        Component south = getSouthComponent();
+        if(south!=null)
+            catcontainer.add(south, BorderLayout.CENTER);
         
         // El modelo de impuestos
         senttax = dlSales.getTaxList();
@@ -322,7 +340,7 @@ public abstract class JPanelTicket extends JPanel implements JPanelView, BeanFac
     public void activate() throws BasicException {
 // added by JDL 26.04.13
 // lets look at adding a timer event fot auto logoff if required
-        Action logout = new logout();        
+        logout = new logout();        
         String autoLogoff = (m_App.getProperties().getProperty("till.autoLogoff"));
         if (autoLogoff != null){
         if (autoLogoff.equals("true")){
@@ -780,8 +798,8 @@ public abstract class JPanelTicket extends JPanel implements JPanelView, BeanFac
 
         TicketLineInfo newline = new TicketLineInfo(m_oTicket.getLine(i));
         
-        newline.setMultiply(futureAmount);
-        futureAmount = 1;
+        newline.setMultiply(Integer.parseInt(jAmount.getText()));
+        jAmount.setText("1");
         
         Double price = newline.getPrice();
         if (current.length() > 0) {
@@ -913,28 +931,81 @@ public abstract class JPanelTicket extends JPanel implements JPanelView, BeanFac
             Toolkit.getDefaultToolkit().beep();
         }       
     }
-    
-    private Integer futureAmount=1;
-    
+        
     @SuppressWarnings("empty-statement")
-    private void stateTransition(char cTrans) {        
+    private void stateTransition(char cTrans) {
         if(true){
         String sTrans = String.valueOf(cTrans);
 
         String current = m_jPrice.getText();
         System.out.println(sTrans);
-        if ("0123456789".contains(sTrans)) { //add digits to the current textbox
-            m_jPrice.setText(current + sTrans);
-            return;
-        }
         
         int i = m_ticketlines.getSelectedIndex();
         Boolean stateWaitingForPrice = i >= 0 &&
-                new TicketLineInfo(m_oTicket.getLine(i)).getPrice() == 0;
+                m_oTicket.getLine(i).getPrice() == 0;
 
         System.out.println("stateWaitingForPrice: "+stateWaitingForPrice);
         
         switch (cTrans) {
+            case '_':  //logout
+                int res = JOptionPane.showConfirmDialog(this, AppLocal.getIntString("message.wannalogout")
+                        , AppLocal.getIntString("title.editor"), JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE);
+                if (res == JOptionPane.YES_OPTION) {        
+                    deactivate(); 
+                    ((JRootApp)m_App).closeAppView();
+                }
+                return;
+            case '=':
+                if (m_oTicket.getLinesCount() > 0)
+                    if (closeTicket(m_oTicket, m_oTicketExt))
+                        m_ticketsbag.deleteTicket();                                    
+                    else
+                        refreshTicket();
+                else
+                    Toolkit.getDefaultToolkit().beep();
+                return;
+            case '%': //discount on total
+                if(current.length()==0) return;
+                Double rate = Double.parseDouble(current)/100;
+                if(rate<1 && rate>0 ){
+                    String sdiscount = Formats.PERCENT.formatValue(rate);
+                    for (int number = 0; number < m_oTicket.getLinesCount(); number++) {
+                        TicketLineInfo line = m_oTicket.getLine(number);
+                        m_oTicket.setLine(number,
+                                new TicketLineInfo(
+                                        line.getProductID(),
+                                        line.getProductName() + " - " + sdiscount,
+                                        line.getProductTaxCategoryID(),
+                                        line.getMultiply(),
+                                        (double) Math.rint(line.getPrice() * (1-rate)*100)/100d,
+                                        line.getTaxInfo()));
+                    }
+                }
+                m_jPrice.setText("");
+                refreshTicket();
+                return;
+            case '#': // open drawer
+                printTicket("Printer.OpenDrawer");
+                return;
+            case '-'://delete line               
+                m_jDelete.doClick();
+                return;
+            case '.': //new sale
+            case ',': //cancel sale
+                ((JTicketsBagShared)m_ticketsbag).processKey(cTrans);
+                return;
+            case '0':
+            case '1':
+            case '2':
+            case '3':
+            case '4':
+            case '5':
+            case '6':
+            case '7':
+            case '8':
+            case '9':
+                m_jPrice.setText(current + sTrans);
+                return;
             case '/': //interpret as article number
                 if (stateWaitingForPrice || current.length() == 0) 
                     return;
@@ -944,7 +1015,7 @@ public abstract class JPanelTicket extends JPanel implements JPanelView, BeanFac
                 return;
             case '*': //intepret as amount
                 if (current.length() == 0) return;
-                futureAmount = Integer.parseInt(current);
+                jAmount.setText(current);
                 m_jPrice.setText("");
                 return;
             case '\n': //register price and amount
@@ -1887,6 +1958,10 @@ if (pickupSize!=null && (Integer.parseInt(pickupSize) >= tmpPickupId.length())){
         jbtnMooring = new javax.swing.JButton();
         j_btnKitchenPrt = new javax.swing.JButton();
         m_jPanelBag = new javax.swing.JPanel();
+        jPanel3 = new javax.swing.JPanel();
+        jAmount = new javax.swing.JLabel();
+        jAmount1 = new javax.swing.JLabel();
+        m_jPrice = new javax.swing.JLabel();
         m_jPanTicket = new javax.swing.JPanel();
         jPanel5 = new javax.swing.JPanel();
         jPanel2 = new javax.swing.JPanel();
@@ -1906,16 +1981,15 @@ if (pickupSize!=null && (Integer.parseInt(pickupSize) >= tmpPickupId.length())){
         m_jSubtotalEuros = new javax.swing.JLabel();
         m_jTaxesEuros = new javax.swing.JLabel();
         m_jTotalEuros = new javax.swing.JLabel();
+        m_jKeyFactory = new javax.swing.JTextField();
         m_jContEntries = new javax.swing.JPanel();
         m_jPanEntries = new javax.swing.JPanel();
         m_jNumberKeys = new com.openbravo.beans.JNumberKeys();
         jPanel9 = new javax.swing.JPanel();
-        m_jPrice = new javax.swing.JLabel();
         m_jPor = new javax.swing.JLabel();
         m_jEnter = new javax.swing.JButton();
         m_jTax = new javax.swing.JComboBox();
         m_jaddtax = new javax.swing.JToggleButton();
-        m_jKeyFactory = new javax.swing.JTextField();
         catcontainer = new javax.swing.JPanel();
 
         setBackground(new java.awt.Color(255, 204, 153));
@@ -2056,6 +2130,35 @@ if (pickupSize!=null && (Integer.parseInt(pickupSize) >= tmpPickupId.length())){
 
         m_jPanelBag.setPreferredSize(new java.awt.Dimension(0, 50));
         m_jPanelBag.setLayout(new java.awt.BorderLayout());
+
+        jPanel3.setLayout(new java.awt.GridLayout());
+
+        jAmount.setBackground(new java.awt.Color(255, 255, 255));
+        jAmount.setFont(new java.awt.Font("Arial", 0, 24)); // NOI18N
+        jAmount.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        jAmount.setMinimumSize(new java.awt.Dimension(60, 15));
+        jAmount.setOpaque(true);
+        jPanel3.add(jAmount);
+
+        jAmount1.setBackground(new java.awt.Color(255, 255, 255));
+        jAmount1.setFont(new java.awt.Font("Arial", 0, 24)); // NOI18N
+        jAmount1.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        jAmount1.setText("x");
+        jAmount1.setToolTipText("");
+        jAmount1.setMinimumSize(new java.awt.Dimension(60, 15));
+        jAmount1.setOpaque(true);
+        jPanel3.add(jAmount1);
+
+        m_jPrice.setBackground(new java.awt.Color(255, 255, 255));
+        m_jPrice.setFont(new java.awt.Font("Arial", 0, 24)); // NOI18N
+        m_jPrice.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        m_jPrice.setOpaque(true);
+        m_jPrice.setPreferredSize(new java.awt.Dimension(100, 25));
+        m_jPrice.setRequestFocusEnabled(false);
+        jPanel3.add(m_jPrice);
+
+        m_jPanelBag.add(jPanel3, java.awt.BorderLayout.CENTER);
+
         m_jOptions.add(m_jPanelBag, java.awt.BorderLayout.CENTER);
 
         m_jPanContainer.add(m_jOptions, java.awt.BorderLayout.NORTH);
@@ -2254,6 +2357,21 @@ if (pickupSize!=null && (Integer.parseInt(pickupSize) >= tmpPickupId.length())){
 
         m_jPanContainer.add(m_jPanTicket, java.awt.BorderLayout.CENTER);
 
+        m_jKeyFactory.setBackground(javax.swing.UIManager.getDefaults().getColor("Panel.background"));
+        m_jKeyFactory.setForeground(javax.swing.UIManager.getDefaults().getColor("Panel.background"));
+        m_jKeyFactory.setBorder(null);
+        m_jKeyFactory.setCaretColor(javax.swing.UIManager.getDefaults().getColor("Panel.background"));
+        m_jKeyFactory.setPreferredSize(new java.awt.Dimension(1, 1));
+        m_jKeyFactory.addKeyListener(new java.awt.event.KeyAdapter() {
+            public void keyTyped(java.awt.event.KeyEvent evt) {
+                m_jKeyFactoryKeyTyped(evt);
+            }
+            public void keyReleased(java.awt.event.KeyEvent evt) {
+                m_jKeyFactoryKeyReleased(evt);
+            }
+        });
+        m_jPanContainer.add(m_jKeyFactory, java.awt.BorderLayout.LINE_START);
+
         m_jContEntries.setFont(new java.awt.Font("Arial", 0, 12)); // NOI18N
         m_jContEntries.setLayout(new java.awt.BorderLayout());
 
@@ -2270,21 +2388,6 @@ if (pickupSize!=null && (Integer.parseInt(pickupSize) >= tmpPickupId.length())){
 
         jPanel9.setBorder(javax.swing.BorderFactory.createEmptyBorder(5, 5, 5, 5));
         jPanel9.setLayout(new java.awt.GridBagLayout());
-
-        m_jPrice.setFont(new java.awt.Font("Arial", 0, 12)); // NOI18N
-        m_jPrice.setHorizontalAlignment(javax.swing.SwingConstants.RIGHT);
-        m_jPrice.setBorder(javax.swing.BorderFactory.createCompoundBorder(javax.swing.BorderFactory.createLineBorder(javax.swing.UIManager.getDefaults().getColor("Button.darkShadow")), javax.swing.BorderFactory.createEmptyBorder(1, 4, 1, 4)));
-        m_jPrice.setOpaque(true);
-        m_jPrice.setPreferredSize(new java.awt.Dimension(100, 25));
-        m_jPrice.setRequestFocusEnabled(false);
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 0;
-        gridBagConstraints.gridwidth = 2;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
-        gridBagConstraints.weightx = 1.0;
-        gridBagConstraints.weighty = 1.0;
-        jPanel9.add(m_jPrice, gridBagConstraints);
 
         m_jPor.setFont(new java.awt.Font("Arial", 0, 12)); // NOI18N
         m_jPor.setHorizontalAlignment(javax.swing.SwingConstants.RIGHT);
@@ -2351,18 +2454,6 @@ if (pickupSize!=null && (Integer.parseInt(pickupSize) >= tmpPickupId.length())){
         jPanel9.add(m_jaddtax, gridBagConstraints);
 
         m_jPanEntries.add(jPanel9);
-
-        m_jKeyFactory.setBackground(javax.swing.UIManager.getDefaults().getColor("Panel.background"));
-        m_jKeyFactory.setForeground(javax.swing.UIManager.getDefaults().getColor("Panel.background"));
-        m_jKeyFactory.setBorder(null);
-        m_jKeyFactory.setCaretColor(javax.swing.UIManager.getDefaults().getColor("Panel.background"));
-        m_jKeyFactory.setPreferredSize(new java.awt.Dimension(1, 1));
-        m_jKeyFactory.addKeyListener(new java.awt.event.KeyAdapter() {
-            public void keyTyped(java.awt.event.KeyEvent evt) {
-                m_jKeyFactoryKeyTyped(evt);
-            }
-        });
-        m_jPanEntries.add(m_jKeyFactory);
 
         m_jContEntries.add(m_jPanEntries, java.awt.BorderLayout.NORTH);
 
@@ -2594,15 +2685,29 @@ m_App.getAppUserView().showTask("com.openbravo.pos.customers.CustomersPanel");
         stateTransition(evt.getKey());
     }//GEN-LAST:event_m_jNumberKeysKeyPerformed
 
+    private void m_jKeyFactoryKeyReleased(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_m_jKeyFactoryKeyReleased
+        switch(evt.getKeyCode()){
+            case KeyEvent.VK_DOWN:
+                m_jDown.doClick();
+                return;
+            case KeyEvent.VK_UP:
+                m_jUp.doClick();
+                return;
+        }
+    }//GEN-LAST:event_m_jKeyFactoryKeyReleased
+
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton btnCustomer;
     private javax.swing.JButton btnSplit;
     private javax.swing.JPanel catcontainer;
+    private javax.swing.JLabel jAmount;
+    private javax.swing.JLabel jAmount1;
     private javax.swing.JButton jButton1;
     private javax.swing.JButton jEditAttributes;
     private javax.swing.JPanel jPanel1;
     private javax.swing.JPanel jPanel2;
+    private javax.swing.JPanel jPanel3;
     private javax.swing.JPanel jPanel4;
     private javax.swing.JPanel jPanel5;
     private javax.swing.JPanel jPanel9;

@@ -73,8 +73,6 @@ public class JRootApp extends JPanel implements AppView {
     
     private String m_sInventoryLocation;
     
-    private StringBuilder inputtext;
-   
     private DeviceScale m_Scale;
     private DeviceScanner m_Scanner;
     private DeviceTicket m_TP;   
@@ -627,7 +625,8 @@ public class JRootApp extends JPanel implements AppView {
     }
   
     private void listPeople() {
-        
+        int width=250;
+        int height=60;
         try {
            
             jScrollPane1.getViewport().setView(null);
@@ -647,9 +646,9 @@ public class JRootApp extends JPanel implements AppView {
                 btn.setFocusable(false);
                 btn.setRequestFocusEnabled(false);
 //                btn.setHorizontalAlignment(SwingConstants.CENTER); // jg 27 JUL 2013
-                btn.setMaximumSize(new Dimension(110, 60));
-                btn.setPreferredSize(new Dimension(110, 60));
-                btn.setMinimumSize(new Dimension(110, 60));
+                btn.setMaximumSize(new Dimension(width, height));
+                btn.setPreferredSize(new Dimension(width, height));
+                btn.setMinimumSize(new Dimension(width, height));
 // Added: JG 27 Jul 13
                 btn.setHorizontalAlignment(SwingConstants.CENTER);
                 btn.setHorizontalTextPosition(AbstractButton.CENTER);                 
@@ -670,7 +669,8 @@ public class JRootApp extends JPanel implements AppView {
         public AppUserAction(AppUser user) {
             m_actionuser = user;
             putValue(Action.SMALL_ICON, m_actionuser.getIcon());
-            putValue(Action.NAME, m_actionuser.getName());
+            putValue(Action.NAME, '(' + m_actionuser.getCard()+") " + 
+                    m_actionuser.getName());
         }
         
         public AppUser getUser() {
@@ -768,7 +768,6 @@ public class JRootApp extends JPanel implements AppView {
         printerStart();
  
         // keyboard listener activation
-        inputtext = new StringBuilder();
         m_txtKeys.setText(null);       
         java.awt.EventQueue.invokeLater(new Runnable() {
             @Override
@@ -779,28 +778,37 @@ public class JRootApp extends JPanel implements AppView {
     }
     
     private void processKey(char c) {
-        
-        if ((c == '\n') || (c =='?')) {
+        switch(c){
+            case '\n':
+            case '?':
             
-            AppUser user = null;
-            try {
-                user = m_dlSystem.findPeopleByCard(inputtext.toString());
-            } catch (BasicException e) {
-            }
-            
-            if (user == null)  {
-                // user not found
-                MessageInf msg = new MessageInf(MessageInf.SGN_WARNING, AppLocal.getIntString("message.nocard"));
-                msg.show(this);                
-            } else {
-                openAppView(user);   
-            }
+                AppUser user = null;
+                try {
+                    user = m_dlSystem.findPeopleByCard(String.valueOf(jCard.getText()));
+                } catch (BasicException e) {
+                }
 
-            inputtext = new StringBuilder();
+                if (user == null) {
+                    // user not found
+                    MessageInf msg = new MessageInf(MessageInf.SGN_WARNING, AppLocal.getIntString("message.nocard"), jCard.getText());
+                    msg.show(this);
+                } else {
+                    openAppView(user);
+                }
 
-        } else {
-            inputtext.append(c);
+                jCard.setText("");
+
+                return;
+            case '_':
+                int res = JOptionPane.showConfirmDialog(this, AppLocal.getIntString("message.wannalogout")
+                        , AppLocal.getIntString("title.editor"), JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE);
+                if (res == JOptionPane.YES_OPTION){
+                    tryToClose();                
+                    break;
+                }else
+                    return;
         }
+        jCard.setText(jCard.getText()+c);
     }
 
         
@@ -829,6 +837,7 @@ public class JRootApp extends JPanel implements AppView {
         jPanel1 = new javax.swing.JPanel();
         m_txtKeys = new javax.swing.JTextField();
         m_jClose = new javax.swing.JButton();
+        jCard = new javax.swing.JTextField();
         m_jPanelDown = new javax.swing.JPanel();
         panelTask = new javax.swing.JPanel();
         m_jHost = new javax.swing.JLabel();
@@ -950,15 +959,19 @@ public class JRootApp extends JPanel implements AppView {
                 .add(m_jClose, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE))
         );
 
+        jCard.setName(""); // NOI18N
+
         org.jdesktop.layout.GroupLayout jPanel5Layout = new org.jdesktop.layout.GroupLayout(jPanel5);
         jPanel5.setLayout(jPanel5Layout);
         jPanel5Layout.setHorizontalGroup(
             jPanel5Layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
             .add(jPanel5Layout.createSequentialGroup()
                 .addContainerGap()
-                .add(jPanel5Layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING, false)
-                    .add(jPanel1, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .add(jScrollPane1))
+                .add(jPanel5Layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
+                    .add(jPanel5Layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING, false)
+                        .add(jPanel1, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .add(jScrollPane1))
+                    .add(jCard, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 283, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE))
                 .add(104, 104, 104)
                 .add(m_jLogonName, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
                 .add(0, 0, Short.MAX_VALUE))
@@ -972,7 +985,9 @@ public class JRootApp extends JPanel implements AppView {
                         .add(m_jLogonName, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
                         .add(434, 434, 434))
                     .add(jPanel5Layout.createSequentialGroup()
-                        .add(jScrollPane1)
+                        .add(jCard, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .add(jScrollPane1, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 582, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
                         .add(jPanel1, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
                         .addContainerGap())))
@@ -1016,6 +1031,7 @@ public class JRootApp extends JPanel implements AppView {
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.Box.Filler filler2;
+    private javax.swing.JTextField jCard;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JPanel jPanel1;
