@@ -679,7 +679,11 @@ public class JRootApp extends JPanel implements AppView {
         
         @Override
         public void actionPerformed(ActionEvent evt) {
-            // String sPassword = m_actionuser.getPassword();
+            tryLogIn(m_actionuser);
+        }
+    }
+    private void tryLogIn(AppUser m_actionuser){
+        // String sPassword = m_actionuser.getPassword();
             if (m_actionuser.authenticate()) {
                 // p'adentro directo, no tiene password        
                 openAppView(m_actionuser);         
@@ -698,9 +702,9 @@ public class JRootApp extends JPanel implements AppView {
                     }
                 }   
             }
-        }
     }
-    
+            
+            
     private void showView(String view) {
         CardLayout cl = (CardLayout)(m_jPanelContainer.getLayout());
         cl.show(m_jPanelContainer, view);  
@@ -793,7 +797,7 @@ public class JRootApp extends JPanel implements AppView {
                     MessageInf msg = new MessageInf(MessageInf.SGN_WARNING, AppLocal.getIntString("message.nocard"), jCard.getText());
                     msg.show(this);
                 } else {
-                    openAppView(user);
+                    tryLogIn(user);
                 }
 
                 jCard.setText("");
