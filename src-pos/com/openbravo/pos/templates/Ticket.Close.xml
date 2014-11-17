@@ -28,9 +28,9 @@ import javax.swing.JDialog;
 
 boolean isCash = false;
 String change = "";
-PaymentInfo p = ticket.payments.getFirst();
+PaymentInfo p = ticket.payments.getLast();
 
-if ("cash".equals(p.getName())) {
+if ("cash".equals(p.getName()) && p.getChange() != 0) {
     isCash = true;
     change = p.printChange();
 }
@@ -40,7 +40,7 @@ JOptionPane pane = new JOptionPane();
 Font originalFont=pane.getFont();
 
 UIManager.put("OptionPane.buttonFont", new FontUIResource(new Font("ARIAL",Font.PLAIN,20)));
-message = "Change: " + change;
+message = "Wechselgeld: " + change;
  JLabel FontText = new JLabel(message);
  FontText.setFont (new Font ( "Arial", Font.BOLD, 36) );
 

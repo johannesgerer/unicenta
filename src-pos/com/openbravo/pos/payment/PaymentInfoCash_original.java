@@ -20,6 +20,7 @@
 package com.openbravo.pos.payment;
 
 import com.openbravo.format.Formats;
+import com.openbravo.pos.util.RoundUtils;
 
 /**
  *
@@ -100,7 +101,7 @@ public class PaymentInfoCash_original extends PaymentInfo {
      */
     @Override
     public double getChange(){
-       return m_dPaid - m_dTotal;
+       return RoundUtils.round(m_dPaid - m_dTotal);
    }
 
     /**

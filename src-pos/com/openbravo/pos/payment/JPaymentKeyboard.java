@@ -23,6 +23,7 @@ import com.openbravo.pos.customers.CustomerInfoExt;
 import com.openbravo.pos.forms.AppLocal;
 import com.openbravo.pos.util.RoundUtils;
 import java.awt.Component;
+import java.awt.event.KeyEvent;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import javax.swing.table.DefaultTableModel;
@@ -87,6 +88,8 @@ public class JPaymentKeyboard extends javax.swing.JPanel implements JPaymentInte
      */
     @Override
     public Component getComponent() {
+        model=null;
+        jTable1.setModel(getModel());
         return this;
     }
     
@@ -126,6 +129,9 @@ public class JPaymentKeyboard extends javax.swing.JPanel implements JPaymentInte
         m_jTendered.addKeyListener(new java.awt.event.KeyAdapter() {
             public void keyTyped(java.awt.event.KeyEvent evt) {
                 m_jTenderedKeyTyped(evt);
+            }
+            public void keyPressed(java.awt.event.KeyEvent evt) {
+                m_jTenderedKeyPressed(evt);
             }
         });
         jPanel4.add(m_jTendered, java.awt.BorderLayout.CENTER);
@@ -177,15 +183,13 @@ public class JPaymentKeyboard extends javax.swing.JPanel implements JPaymentInte
                 payment = new PaymentInfoCash_original(Math.min(value,m_dTotal), value);
                 break;
             case 'g': //gutschein
-                TODO: value>Total
-                        Templates/Ticket.Close.xml
-                payment = new PaymentInfoTicket(value, "paperin");
+                payment = nonCash(value,"paperin");
                 break;
             case 'k': //kreditcarte
-                payment = new PaymentInfoTicket(value, "magcard");      
+                payment = nonCash(value,"magcard");
                 break;
             case 'e': //ec
-                payment = new PaymentInfoTicket(value, "cheque");      
+                payment = nonCash(value, "cheque");
                 break;
             case 'c': //clear
                 jAmount.setText("");
@@ -193,18 +197,29 @@ public class JPaymentKeyboard extends javax.swing.JPanel implements JPaymentInte
             default:
                 return;
         }
-        m_notifier.addPayment(payment);
-        if(value<m_dTotal)
-            addLine(payment.getName(),value);
-        else{
-            model=null;
-            jTable1.setModel(getModel());
+        Boolean done= value >= m_dTotal;
+        if (payment != null) {
+            if (!done)
+                addLine(payment.getName(), value);
+            m_notifier.addPayment(payment, done);
         }
         jAmount.setText("");
     }//GEN-LAST:event_m_jTenderedKeyTyped
+
+    private void m_jTenderedKeyPressed(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_m_jTenderedKeyPressed
+        if(evt.getKeyCode()==KeyEvent.VK_ESCAPE)
+            m_notifier.dispose();
+    }//GEN-LAST:event_m_jTenderedKeyPressed
+    
+    private PaymentInfo nonCash(Double value,String name){
+        if(value>m_dTotal) return null;
+        return new PaymentInfoTicket(value, name);
+    }
     
     private void addLine(String name,Double value){
-        model.addRow(new Object[]{AppLocal.getIntString("transpayment." + name),value});
+        model.insertRow(0,new Object[]{
+            AppLocal.getIntString("transpayment." + name)
+                ,Formats.CURRENCY.formatValue(value)});
     }
     
     // Variables declaration - do not modify//GEN-BEGIN:variables

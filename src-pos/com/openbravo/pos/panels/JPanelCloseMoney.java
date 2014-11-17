@@ -34,6 +34,7 @@ import com.openbravo.pos.scripting.ScriptEngine;
 import com.openbravo.pos.scripting.ScriptException;
 import com.openbravo.pos.scripting.ScriptFactory;
 import java.awt.Dimension;
+import java.awt.event.KeyEvent;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -152,6 +153,14 @@ public class JPanelCloseMoney extends JPanel implements JPanelView, BeanFactoryA
     @Override
     public void activate() throws BasicException {
         loadData();
+        // activo el tecleador...
+        jTextField1.setText(null);
+        java.awt.EventQueue.invokeLater(new Runnable() {
+            @Override
+            public void run() {
+                jTextField1.requestFocus();
+            }
+        });
     }
 
     /**
@@ -332,6 +341,7 @@ public class JPanelCloseMoney extends JPanel implements JPanelView, BeanFactoryA
         jPanelBottom = new javax.swing.JPanel();
         m_jCloseCash = new javax.swing.JButton();
         m_jPrintCash = new javax.swing.JButton();
+        jTextField1 = new javax.swing.JTextField();
 
         setLayout(new java.awt.BorderLayout());
 
@@ -684,6 +694,15 @@ public class JPanelCloseMoney extends JPanel implements JPanelView, BeanFactoryA
         );
 
         add(jPanel1, java.awt.BorderLayout.CENTER);
+
+        jTextField1.setText("jTextField1");
+        jTextField1.setPreferredSize(new java.awt.Dimension(0, 0));
+        jTextField1.addKeyListener(new java.awt.event.KeyAdapter() {
+            public void keyReleased(java.awt.event.KeyEvent evt) {
+                jTextField1KeyReleased(evt);
+            }
+        });
+        add(jTextField1, java.awt.BorderLayout.PAGE_START);
     }// </editor-fold>//GEN-END:initComponents
 
     private void m_jPrintCashTopActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_m_jPrintCashTopActionPerformed
@@ -805,6 +824,16 @@ public class JPanelCloseMoney extends JPanel implements JPanelView, BeanFactoryA
         printPayments("Printer.PartialCash");
 
     }//GEN-LAST:event_m_jPrintCashActionPerformed
+
+    private void jTextField1KeyReleased(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_jTextField1KeyReleased
+        switch(evt.getKeyCode()){
+            case KeyEvent.VK_ESCAPE:
+                m_App.getAppUserView().showTask("com.openbravo.pos.sales.JPanelTicketSales");
+                return;
+            case KeyEvent.VK_ENTER:
+                m_jCloseCash.doClick();
+        }
+    }//GEN-LAST:event_jTextField1KeyReleased
     
     
     // Variables declaration - do not modify//GEN-BEGIN:variables
@@ -825,6 +854,7 @@ public class JPanelCloseMoney extends JPanel implements JPanelView, BeanFactoryA
     private javax.swing.JPanel jPanelBottom;
     private javax.swing.JPanel jPanelTop;
     private javax.swing.JSeparator jSeparator1;
+    private javax.swing.JTextField jTextField1;
     private javax.swing.JTextField m_jCash;
     private javax.swing.JButton m_jCloseCash;
     private javax.swing.JButton m_jCloseCashTop;

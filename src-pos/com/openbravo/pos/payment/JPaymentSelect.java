@@ -210,6 +210,7 @@ public abstract class JPaymentSelect extends javax.swing.JDialog
         }
     }
 
+    
     /**
      *
      */
@@ -889,10 +890,10 @@ public abstract class JPaymentSelect extends javax.swing.JDialog
         
     }//GEN-LAST:event_m_jButtonAddActionPerformed
 
-    public void addPayment(PaymentInfo payment){
+    public void addPayment(PaymentInfo payment, Boolean done){
         m_aPaymentInfo.add(payment);
+        accepted = done;
         printState();
-        accepted = true;
     }
     
     private void m_jTabPaymentStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_m_jTabPaymentStateChanged

@@ -103,11 +103,14 @@ public abstract class JPanelTicket extends JPanel implements JPanelView, BeanFac
     // private Template m_tempLine;
     private TicketParser m_TTP;
     
+    
+    
     /**
      *
      */
     protected TicketInfo m_oTicket; 
-
+    protected TicketInfo m_oTicket_Previous;
+    
     /**
      *
      */
@@ -257,6 +260,8 @@ public abstract class JPanelTicket extends JPanel implements JPanelView, BeanFac
         jPanel2.remove(m_jList);
         jPanel2.remove(jEditAttributes);
         m_jPanContainer.remove(m_jContEntries);
+        m_jPanTotals.remove(m_jLblTotalEuros3);
+        m_jPanTotals.remove(m_jSubtotalEuros);
         
         // El panel de los productos o de las lineas...        
         Component south = getSouthComponent();
@@ -806,7 +811,7 @@ public abstract class JPanelTicket extends JPanel implements JPanelView, BeanFac
             price = Double.parseDouble(current) / 100;            
         }         
 
-        newline.setPrice(price);
+        newline.setPriceTax(price);
         paintTicketLine(i, newline);        
     }
     
@@ -947,6 +952,13 @@ public abstract class JPanelTicket extends JPanel implements JPanelView, BeanFac
         System.out.println("stateWaitingForPrice: "+stateWaitingForPrice);
         
         switch (cTrans) {
+            case '?': // reprint previous ticket
+                if(m_oTicket_Previous!=null)
+                    printTicket( "Printer.TicketPreview", m_oTicket_Previous, null); 
+                return;
+            case '$':// close cash                
+                m_App.getAppUserView().showTask("com.openbravo.pos.panels.JPanelCloseMoney");
+                return;
             case '_':  //logout
                 int res = JOptionPane.showConfirmDialog(this, AppLocal.getIntString("message.wannalogout")
                         , AppLocal.getIntString("title.editor"), JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE);
@@ -956,7 +968,7 @@ public abstract class JPanelTicket extends JPanel implements JPanelView, BeanFac
                 }
                 return;
             case '=':
-                if (m_oTicket.getLinesCount() > 0)
+                if (!stateWaitingForPrice && m_oTicket.getLinesCount() > 0)
                     if (closeTicket(m_oTicket, m_oTicketExt))
                         m_ticketsbag.deleteTicket();                                    
                     else
@@ -965,7 +977,7 @@ public abstract class JPanelTicket extends JPanel implements JPanelView, BeanFac
                     Toolkit.getDefaultToolkit().beep();
                 return;
             case '%': //discount on total
-                if(current.length()==0) return;
+                if(current.length()==0 || stateWaitingForPrice) return;
                 Double rate = Double.parseDouble(current)/100;
                 if(rate<1 && rate>0 ){
                     String sdiscount = Formats.PERCENT.formatValue(rate);
@@ -987,7 +999,7 @@ public abstract class JPanelTicket extends JPanel implements JPanelView, BeanFac
             case '#': // open drawer
                 printTicket("Printer.OpenDrawer");
                 return;
-            case '-'://delete line               
+            case '-'://delete line       
                 m_jDelete.doClick();
                 return;
             case '.': //new sale
@@ -1510,7 +1522,9 @@ public abstract class JPanelTicket extends JPanel implements JPanelView, BeanFac
                                     //|| warrantyPrint
                                     ? "Printer.Ticket"
 //                                    ? ticketPrintType
-                                    : "Printer.Ticket2", ticket, ticketext);  
+                                    : "Printer.Ticket2", ticket, ticketext); 
+                            m_oTicket_Previous=ticket;
+                            
                             
 //                            if (m_oTicket.getLoyaltyCardNumber() != null){
 // add points to the card
@@ -2131,7 +2145,7 @@ if (pickupSize!=null && (Integer.parseInt(pickupSize) >= tmpPickupId.length())){
         m_jPanelBag.setPreferredSize(new java.awt.Dimension(0, 50));
         m_jPanelBag.setLayout(new java.awt.BorderLayout());
 
-        jPanel3.setLayout(new java.awt.GridLayout());
+        jPanel3.setLayout(new java.awt.GridLayout(1, 0));
 
         jAmount.setBackground(new java.awt.Color(255, 255, 255));
         jAmount.setFont(new java.awt.Font("Arial", 0, 24)); // NOI18N
