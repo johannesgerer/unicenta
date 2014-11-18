@@ -21,6 +21,7 @@
 package com.openbravo.pos.payment;
 
 import com.openbravo.format.Formats;
+import com.openbravo.pos.forms.AppLocal;
 
 /**
  *
@@ -34,6 +35,10 @@ public abstract class PaymentInfo {
      */
     public abstract String getName();
 
+    public String printIntName(){
+        return AppLocal.getIntString("transpayment." + getName());
+    }
+    
     /**
      *
      * @return

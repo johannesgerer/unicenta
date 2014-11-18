@@ -247,8 +247,9 @@ public class JPanelCloseMoney extends JPanel implements JPanelView, BeanFactoryA
             if (("Derby".equals(sdbmanager)) || ("Apache Derby".equals(sdbmanager))){                
                SQL = "SELECT * FROM DRAWEROPENED WHERE TICKETID = 'No Sale' AND OPENDATE > {fn TIMESTAMP('"+ m_PaymentsToClose.getDateStartDerby() +"')}";                                  
             } else {  
-               SQL="SELECT * FROM DRAWEROPENED WHERE TICKETID = 'No Sale' AND OPENDATE > " + "'" + m_PaymentsToClose.printDateStart()+ "'";        
+               SQL="SELECT * FROM DRAWEROPENED WHERE TICKETID = 'No Sale' AND OPENDATE > " + "'" + m_PaymentsToClose.getDateStartDerby()+ "'";        
             }
+            System.out.println(SQL);
             stmt = (Statement) con.createStatement();      
             rs = stmt.executeQuery(SQL);
             while (rs.next()){

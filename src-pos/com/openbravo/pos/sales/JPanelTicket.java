@@ -821,7 +821,7 @@ public abstract class JPanelTicket extends JPanel implements JPanelView, BeanFac
             ProductInfoExt oProduct = dlSales.getProductInfoByReference(sRef);
             if (oProduct == null) {                  
                 Toolkit.getDefaultToolkit().beep();                   
-                new MessageInf(MessageInf.SGN_WARNING, AppLocal.getIntString("message.noproduct")).show(this);           
+                new MessageInf(MessageInf.SGN_WARNING, AppLocal.getIntString("message.noproduct") + " '"+sRef+"'").show(this);           
                 stateToZero();
             } else {
                 // Se anade directamente una unidad con el precio y todo
@@ -833,21 +833,24 @@ public abstract class JPanelTicket extends JPanel implements JPanelView, BeanFac
         }
     }
     
-    private void incProductByCode(String sCode) {
+    private Boolean incProductByCode(String sCode) {
     // precondicion: sCode != null
         try {
             ProductInfoExt oProduct = dlSales.getProductInfoByCode(sCode);
             if (oProduct == null) {                  
                 Toolkit.getDefaultToolkit().beep();                   
-                new MessageInf(MessageInf.SGN_WARNING, AppLocal.getIntString("message.noproduct")).show(this);           
+                new MessageInf(MessageInf.SGN_WARNING, AppLocal.getIntString("message.noproduct") + " '"+sCode+"'").show(this);
                 stateToZero();
+                return false;
             } else {
                 // Se anade directamente una unidad con el precio y todo
                 incProduct(oProduct);
+                return true;
             }
         } catch (BasicException eData) {
             stateToZero();           
             new MessageInf(eData).show(this);           
+            return false;
         }
     }
     
@@ -1021,8 +1024,8 @@ public abstract class JPanelTicket extends JPanel implements JPanelView, BeanFac
             case '/': //interpret as article number
                 if (stateWaitingForPrice || current.length() == 0) 
                     return;
-                incProductByCode(current);
                 m_jPrice.setText("");
+                if(!incProductByCode(current)) return;
                 setLineState("");
                 return;
             case '*': //intepret as amount

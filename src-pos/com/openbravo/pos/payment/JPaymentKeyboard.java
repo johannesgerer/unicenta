@@ -69,7 +69,7 @@ public class JPaymentKeyboard extends javax.swing.JPanel implements JPaymentInte
      */
     @Override
     public void activate(CustomerInfoExt customerext, double dTotal, String transID) {
-        m_dTotal = dTotal;        
+        m_dTotal = RoundUtils.round(dTotal);
         transaction=transID;
     }
 
@@ -197,10 +197,10 @@ public class JPaymentKeyboard extends javax.swing.JPanel implements JPaymentInte
             default:
                 return;
         }
-        Boolean done= value >= m_dTotal;
+        Boolean done= RoundUtils.compare(value,m_dTotal) >= 0;
         if (payment != null) {
             if (!done)
-                addLine(payment.getName(), value);
+                addLine(payment, value);
             m_notifier.addPayment(payment, done);
         }
         jAmount.setText("");
@@ -212,13 +212,12 @@ public class JPaymentKeyboard extends javax.swing.JPanel implements JPaymentInte
     }//GEN-LAST:event_m_jTenderedKeyPressed
     
     private PaymentInfo nonCash(Double value,String name){
-        if(value>m_dTotal) return null;
+        if(RoundUtils.compare(value,m_dTotal)>0) return null;
         return new PaymentInfoTicket(value, name);
     }
     
-    private void addLine(String name,Double value){
-        model.insertRow(0,new Object[]{
-            AppLocal.getIntString("transpayment." + name)
+    private void addLine(PaymentInfo payment,Double value){
+        model.insertRow(0,new Object[]{payment.printIntName()
                 ,Formats.CURRENCY.formatValue(value)});
     }
     

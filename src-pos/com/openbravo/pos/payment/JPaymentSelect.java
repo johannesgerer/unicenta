@@ -24,6 +24,7 @@ import com.openbravo.pos.customers.CustomerInfoExt;
 import com.openbravo.pos.forms.AppLocal;
 import com.openbravo.pos.forms.AppView;
 import com.openbravo.pos.forms.DataLogicSystem;
+import com.openbravo.pos.util.RoundUtils;
 import java.awt.*;
 import java.util.HashMap;
 import java.util.List;
@@ -684,7 +685,7 @@ public abstract class JPaymentSelect extends javax.swing.JDialog
     }
     
     private void printState() {
-        Double rest=m_dTotal - m_aPaymentInfo.getTotal();
+        Double rest=RoundUtils.round(m_dTotal - m_aPaymentInfo.getTotal());
         m_jRemaininglEuros.setText(Formats.CURRENCY.formatValue(rest));
         m_jButtonRemove.setEnabled(!m_aPaymentInfo.isEmpty());
         m_jTabPayment.setSelectedIndex(0); // selecciono el primero
