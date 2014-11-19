@@ -30,8 +30,8 @@
             <text align="right" length="5">x${ticketline.printMultiply()}</text>
         </line>
         <line>
-            <text align="right" length="10">${ticketline.printPrice()}</text>
-            <text align="right" length="10">${ticketline.printSubValue()}</text>
+            <text align="right" length="11">${ticketline.printPrice()} =</text>
+            <text align="right" length="9">${ticketline.printSubValue()}</text>
         </line>
     </display>
 </output>

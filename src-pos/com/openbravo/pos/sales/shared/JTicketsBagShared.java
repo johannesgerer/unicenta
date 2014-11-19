@@ -80,7 +80,7 @@ public class JTicketsBagShared extends JTicketsBag {
         
         // Authorisation
         m_jDelTicket.setEnabled(m_App.getAppUserView().getUser().hasPermission("com.openbravo.pos.sales.JPanelTicketEdits"));
-       
+       jPanel1.remove(m_jDelTicket);
     }
     
     /**

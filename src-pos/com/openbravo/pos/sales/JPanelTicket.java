@@ -52,6 +52,7 @@ import com.openbravo.pos.util.AltEncrypter;
 import com.openbravo.pos.util.InactivityListener;
 import com.openbravo.pos.util.JRPrinterAWT300;
 import com.openbravo.pos.util.ReportUtils;
+import com.openbravo.pos.util.RoundUtils;
 import java.awt.BorderLayout;
 import java.awt.CardLayout;
 import java.awt.Component;
@@ -815,7 +816,7 @@ public abstract class JPanelTicket extends JPanel implements JPanelView, BeanFac
         paintTicketLine(i, newline);        
     }
     
-    private void incProductByRef(String sRef) {
+    private Boolean incProductByRef(String sRef) {
     // precondicion: sRef != null
         try {
             ProductInfoExt oProduct = dlSales.getProductInfoByReference(sRef);
@@ -823,13 +824,16 @@ public abstract class JPanelTicket extends JPanel implements JPanelView, BeanFac
                 Toolkit.getDefaultToolkit().beep();                   
                 new MessageInf(MessageInf.SGN_WARNING, AppLocal.getIntString("message.noproduct") + " '"+sRef+"'").show(this);           
                 stateToZero();
+                return false;
             } else {
                 // Se anade directamente una unidad con el precio y todo
                 incProduct(oProduct);
+                return true;
             }
         } catch (BasicException eData) {
             stateToZero();           
             new MessageInf(eData).show(this);           
+            return false;
         }
     }
     
@@ -957,7 +961,7 @@ public abstract class JPanelTicket extends JPanel implements JPanelView, BeanFac
         switch (cTrans) {
             case '?': // reprint previous ticket
                 if(m_oTicket_Previous!=null)
-                    printTicket( "Printer.TicketPreview", m_oTicket_Previous, null); 
+                    printTicket( "Printer.Ticket", m_oTicket_Previous, null); 
                 return;
             case '$':// close cash                
                 m_App.getAppUserView().showTask("com.openbravo.pos.panels.JPanelCloseMoney");
@@ -992,8 +996,9 @@ public abstract class JPanelTicket extends JPanel implements JPanelView, BeanFac
                                         line.getProductName() + " - " + sdiscount,
                                         line.getProductTaxCategoryID(),
                                         line.getMultiply(),
-                                        (double) Math.rint(line.getPrice() * (1-rate)*100)/100d,
-                                        line.getTaxInfo()));
+                                        RoundUtils.round(line.getPrice() * (1-rate)),
+                                        line.getTaxInfo(),
+                                        line.getProductCode()));
                     }
                 }
                 m_jPrice.setText("");
@@ -1005,8 +1010,11 @@ public abstract class JPanelTicket extends JPanel implements JPanelView, BeanFac
             case '-'://delete line       
                 m_jDelete.doClick();
                 return;
+                
+            case ',': //cancel sale 
+                return; //deactivate for security reasons. instead delete single 
+                // lines which will be visible in kassenbericht
             case '.': //new sale
-            case ',': //cancel sale
                 ((JTicketsBagShared)m_ticketsbag).processKey(cTrans);
                 return;
             case '0':
@@ -1038,8 +1046,7 @@ public abstract class JPanelTicket extends JPanel implements JPanelView, BeanFac
                 setLineState(current);
                 return;
             default: //interpret as hotkey article reference
-                if (stateWaitingForPrice) return;                
-                incProductByRef(sTrans);
+                if (stateWaitingForPrice || !incProductByRef(sTrans)) return;
                 setLineState(current);
                 return;
         }}
@@ -1526,7 +1533,7 @@ public abstract class JPanelTicket extends JPanel implements JPanelView, BeanFac
                                     ? "Printer.Ticket"
 //                                    ? ticketPrintType
                                     : "Printer.Ticket2", ticket, ticketext); 
-                            m_oTicket_Previous=ticket;
+                            m_oTicket_Previous=ticket.copyPrintedTicketWithTax();
                             
                             
 //                            if (m_oTicket.getLoyaltyCardNumber() != null){
@@ -1555,8 +1562,8 @@ public abstract class JPanelTicket extends JPanel implements JPanelView, BeanFac
             }
             
             // reset the payment info
-            m_oTicket.resetTaxes();
-            m_oTicket.resetPayments();
+            ticket.resetTaxes();
+            ticket.resetPayments();
         }
         
         // cancelled the ticket.total script

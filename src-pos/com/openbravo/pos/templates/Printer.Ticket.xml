@@ -22,10 +22,19 @@
 
 <output>
 
+	#foreach ($paymentline in $ticket.payments)
+	#if ($paymentline.name == "cash" && $paymentline.getChange() > 0 )
 <display>
-	<line><text align="left" length="10">Total</text><text align="right" length="10">${ticket.printTotal()}</text></line>
-	<line><text align="center" length="20">Thank you for your custom</text></line>
+                <line><text align ="left" length="10">Gegeben:</text>
+                      <text align ="right" length="10">${paymentline.printPaid()}</text>
+                </line>
+                <line><text align ="left" length="10">Zurück:</text>
+                      <text align ="right" length="10">${paymentline.printChange()}</text>
+                </line>
+                
 </display>
+        #end	
+        #end
 
 <ticket>
 	<image>Printer.Ticket.Logo</image>
@@ -33,17 +42,20 @@
         <line></line>
 	<line><text align="center" length="42">InnKaufhaus GmbH</text></line>
         <line><text align="center" length="42">Ledererzeile 1-5, 83512 Wasserburg a. Inn</text></line>
-        <line><text align="center" length="42">Tel 08071 - 9186-0</text></line>
+        <line><text align="center" length="42">Tel 08071/9186-0</text></line>
         <line><text align="center" length="42">www.innkaufhaus.de</text></line>	
-
+        #if ($ticket.getAlreadyPrinted())
+        <line><text align="center" length="42" bold="true">BELEG KOPIE</text></line>	
+        #end
+        
 	#if (${ticket.ticketType} == 0)
-		<line><text align="left" length="15">Beleg:</text><text>${ticket.printId()}</text></line>
+            #set( $type = "Beleg" )
 	#end
-
-	#if (${ticket.ticketType} == 1)
-		<line><text align="left" length="15">Refund:</text><text>${ticket.printId()}</text></line>
-	#end
-		<line><text align="left" length="15">Datum:</text><text>${ticket.printDate()}</text></line>
+        #if (${ticket.ticketType} == 1)
+            #set( $type = "Retoure" )
+        #end
+            <line><text align="left" length="21">${type} ${ticket.printId()}</text>
+                  <text align="right" length="21">${ticket.printDate()}</text></line>
 
 	#if ($ticket.getCustomer())
 		<line><text align="left" length="15">Customer:</text><text>${ticket.getCustomer().printName()}</text></line>
@@ -64,8 +76,8 @@
 	#else
 		<text align ="left" length="17">${ticketline.printName()}</text>
 	#end
-		<text align ="right" length="8">${ticketline.printPriceTax()}</text>
-		<text align ="right" length="7">x${ticketline.printMultiply()}</text>
+		<text align ="right" length="9">${ticketline.printPriceTax()}</text>
+		<text align ="right" length="6">x${ticketline.printMultiply()}</text>
 		<text align ="right" length="10">${ticketline.printValue()}</text>
 	</line>
 
@@ -76,13 +88,21 @@
 	<line><text align="left" length="42">------------------------------------------</text></line>
 	<line><text>Anzahl Artikel: </text><text align ="left" length="14">${ticket.printArticlesCount()}</text></line>
 	<line></line>
-	<line size="1"><text align ="left" length="16" bold="true">Total</text><text align ="right" length="26" bold="true">${ticket.printTotal()}</text></line>
+	<line size="1"><text align ="left" length="16" bold="true">Total</text>
+        <text align ="right" length="26" bold="true">${ticket.printTotal()}</text>
+        </line>
 
 #foreach ($paymentline in $ticket.payments)
 
-	#if ($paymentline.name == "cash")
-                <line><text align="left" bold="true" length="22">Bar:</text><text align ="right" length="20">${paymentline.printPaid()}</text></line>
-	        <line><text align="left" bold="true" length="22">Bar Rückgeld:</text><text align ="right" length="20">${paymentline.printChange()}</text></line>
+	#if ($paymentline.name == "cash" )
+                <line><text align="left" bold="true" length="22">Bar</text>
+                <text align ="right" length="20">${paymentline.printPaid()}</text>
+                </line>
+            #if ($paymentline.getChange() > 0 )
+	        <line><text align="left" bold="true" length="22">Bar Rückgeld</text>
+                <text align ="right" length="20">${paymentline.printChange()}</text>
+                </line>
+            #end
 	#else
             <line><text align="left" length="22" bold="true">${paymentline.printIntName()}</text>
             <text align ="right" length="20">${paymentline.printTotal()}</text>
@@ -119,7 +139,6 @@
 	<line><text align="center" length="42">Auf Wiedersehen im InnKaufhaus</text></line>
         <line><text align="center" length="42">Mo - Fr 09.00 bis 19:00 Uhr</text></line>
         <line><text align="center" length="42">Sa      09.00 bis 16:00 Uhr</text></line>
-
 </ticket>
 
 #foreach ($paymentline in $ticket.payments)

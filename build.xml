@@ -42,6 +42,7 @@
 			<fileset dir="locales/${dist.locale}"/>
 			<file file="start.sh"/>
 		</copy>
+		<chmod file="${dist.jar.dir}/start.sh" perm="700"/>
     <jar destfile="${dist.jar}" basedir="${build.classes.dir}">
       <manifest>
         <attribute name="Main-Class" value="${main.class}"/>

@@ -117,7 +117,8 @@ public class JPanelCloseMoney extends JPanel implements JPanelView, BeanFactoryA
                    jPanelBottom.setVisible(true);
         }        
 
-    }}
+    }
+    }
     
     /**
      *
@@ -709,7 +710,7 @@ public class JPanelCloseMoney extends JPanel implements JPanelView, BeanFactoryA
     private void m_jPrintCashTopActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_m_jPrintCashTopActionPerformed
 
         // print report
-        printPayments("Printer.PartialCash");
+        printPayments("Printer.CloseCash");
     }//GEN-LAST:event_m_jPrintCashTopActionPerformed
 
     private void m_jCloseCashTopActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_m_jCloseCashTopActionPerformed
@@ -822,7 +823,7 @@ public class JPanelCloseMoney extends JPanel implements JPanelView, BeanFactoryA
     private void m_jPrintCashActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_m_jPrintCashActionPerformed
 
         // print report
-        printPayments("Printer.PartialCash");
+        printPayments("Printer.CloseCash");
 
     }//GEN-LAST:event_m_jPrintCashActionPerformed
 

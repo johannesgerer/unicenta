@@ -79,6 +79,7 @@ public class TicketInfo implements SerializableRead, Externalizable {
     private final String m_sResponse;
     private String loyaltyCardNumber;
     private Boolean oldTicket;
+    private Boolean alreadyPrinted;
 
     
     /** Creates new TicketModel */
@@ -96,7 +97,7 @@ public class TicketInfo implements SerializableRead, Externalizable {
         payments = new ArrayList<>(); // JG June 2102 diamond inference
         taxes = null;
         m_sResponse = null;
-        oldTicket=false;
+        alreadyPrinted=false;
         
     }
 
@@ -110,6 +111,7 @@ public class TicketInfo implements SerializableRead, Externalizable {
         out.writeObject(m_dDate);
         out.writeObject(attributes);
         out.writeObject(m_aLines);
+        out.writeObject(alreadyPrinted);
     }
 
     @Override
@@ -122,9 +124,9 @@ public class TicketInfo implements SerializableRead, Externalizable {
         m_dDate = (Date) in.readObject();
         attributes = (Properties) in.readObject();
         m_aLines = (List<TicketLineInfo>) in.readObject();
+        alreadyPrinted = (Boolean) in.readObject();
         m_User = null;
-        m_sActiveCash = null;
-
+        m_sActiveCash = null;        
         payments = new ArrayList<>(); // JG June 2102 diamond inference
         taxes = null;
       
@@ -155,7 +157,17 @@ public class TicketInfo implements SerializableRead, Externalizable {
 
         payments = new ArrayList<>(); // JG June 2102 diamond inference
         taxes = null;
-        
+        alreadyPrinted=true;
+    }
+    public TicketInfo copyPrintedTicketWithTax(){
+        TicketInfo t = copyTicket();
+//        t.taxes. = new LinkedList<>(); // JG June 2102 diamond inference
+//        for (PaymentInfo p : payments) {
+//            t.payments.add(p.copyPayment());
+//        }
+        t.taxes = taxes;
+        t.alreadyPrinted=true;
+        return t;
     }
 
     /**
@@ -184,6 +196,7 @@ public class TicketInfo implements SerializableRead, Externalizable {
             t.payments.add(p.copyPayment());
         }
         t.oldTicket=oldTicket;
+        t.alreadyPrinted = alreadyPrinted;
         // taxes are not copied, must be calculated again.
 
         return t;
@@ -812,7 +825,11 @@ public class TicketInfo implements SerializableRead, Externalizable {
      */
     public boolean getOldTicket() {
 	return (oldTicket);
-}
+    }
+    
+    public boolean getAlreadyPrinted() {
+	return alreadyPrinted;
+    }
 
     /**
      *

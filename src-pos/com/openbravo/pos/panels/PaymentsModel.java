@@ -257,14 +257,15 @@ public class PaymentsModel {
         SimpleDateFormat ndf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         String startDateFormatted = ndf.format(app.getActiveCashDateStart());
         List removedLines = new StaticSentence(app.getSession()
-            , "SELECT LINEREMOVED.NAME, LINEREMOVED.TICKETID, LINEREMOVED.PRODUCTNAME, SUM(LINEREMOVED.UNITS) AS TOTAL_UNITS  " +
+            , "SELECT LINEREMOVED.NAME, LINEREMOVED.TICKETID, LINEREMOVED.PRODUCTNAME, "
+                    + "SUM(LINEREMOVED.UNITS) AS TOTAL_UNITS  " +
               "FROM LINEREMOVED " +
               "WHERE LINEREMOVED.REMOVEDDATE > ? " +
               "GROUP BY LINEREMOVED.NAME, LINEREMOVED.TICKETID, LINEREMOVED.PRODUCTNAME"
             , SerializerWriteString.INSTANCE
             , new SerializerReadClass(PaymentsModel.RemovedProductLines.class)) //new SerializerReadBasic(new Datas[] {Datas.STRING, Datas.DOUBLE}))
             .list(startDateFormatted);
-        
+        System.out.println(startDateFormatted);
         if (removedLines == null) {
             p.m_lremovedlines = new ArrayList();
         } else {
@@ -294,10 +295,12 @@ public class PaymentsModel {
         }
  
         List products = new StaticSentence(app.getSession()
-            , "SELECT PRODUCTS.NAME, SUM(TICKETLINES.UNITS), TICKETLINES.PRICE, TAXES.RATE " +
+            , "SELECT PRODUCTS.NAME, PRODUCTS.CODE, SUM(TICKETLINES.UNITS), "
+              + "SUM((TICKETLINES.PRICE + TICKETLINES.PRICE * TAXES.RATE ) * TICKETLINES.UNITS) " +
               "FROM TICKETLINES, TICKETS, RECEIPTS, PRODUCTS, TAXES " +
-              "WHERE TICKETLINES.PRODUCT = PRODUCTS.ID AND TICKETLINES.TICKET = TICKETS.ID AND TICKETS.ID = RECEIPTS.ID AND TICKETLINES.TAXID = TAXES.ID AND RECEIPTS.MONEY = ? " +
-              "GROUP BY PRODUCTS.NAME, TICKETLINES.PRICE, TAXES.RATE"
+              "WHERE TICKETLINES.PRODUCT = PRODUCTS.ID AND TICKETLINES.TICKET = TICKETS.ID "
+                + "AND TICKETS.ID = RECEIPTS.ID AND TICKETLINES.TAXID = TAXES.ID AND RECEIPTS.MONEY = ? " +
+              "GROUP BY PRODUCTS.ID"
             , SerializerWriteString.INSTANCE
             , new SerializerReadClass(PaymentsModel.ProductSalesLine.class)) //new SerializerReadBasic(new Datas[] {Datas.STRING, Datas.DOUBLE}))
             .list(app.getActiveCashIndex());
@@ -776,10 +779,9 @@ public class PaymentsModel {
         public static class ProductSalesLine implements SerializableRead {
  
         private String m_ProductName;
+        private String m_Code;
         private Double m_ProductUnits;
-        private Double m_ProductPrice;
-        private Double m_TaxRate;
-        private Double m_ProductPriceTax;
+        private Double m_ProductTotal;
  
         /**
          *
@@ -789,11 +791,9 @@ public class PaymentsModel {
         @Override
         public void readValues(DataRead dr) throws BasicException {
             m_ProductName = dr.getString(1);
-            m_ProductUnits = dr.getDouble(2);
-            m_ProductPrice = dr.getDouble(3);
-            m_TaxRate = dr.getDouble(4);
- 
-            m_ProductPriceTax = m_ProductPrice + m_ProductPrice*m_TaxRate;
+            m_Code = dr.getString(2);
+            m_ProductUnits = dr.getDouble(3);
+            m_ProductTotal = dr.getDouble(4);            
         }
  
         /**
@@ -802,6 +802,9 @@ public class PaymentsModel {
          */
         public String printProductName() {
             return StringUtils.encodeXML(m_ProductName);
+        }
+        public String printProductCode() {
+            return StringUtils.encodeXML(m_Code);
         }
  
         /**
@@ -824,49 +827,22 @@ public class PaymentsModel {
          *
          * @return
          */
-        public String printProductPrice() {
-            return Formats.CURRENCY.formatValue(m_ProductPrice);
+        public String printProductTotal() {
+            return Formats.CURRENCY.formatValue(m_ProductTotal);
         }
  
         /**
          *
          * @return
          */
-        public Double getProductPrice() {
-            return m_ProductPrice;
+        public Double getProductTotal() {
+            return m_ProductTotal;
+        }
+
+        public String getM_Code() {
+            return m_Code;
         }
  
-        /**
-         *
-         * @return
-         */
-        public String printTaxRate() {
-            return Formats.PERCENT.formatValue(m_TaxRate);
-        }
- 
-        /**
-         *
-         * @return
-         */
-        public Double getTaxRate() {
-            return m_TaxRate;
-        }
- 
-        /**
-         *
-         * @return
-         */
-        public String printProductPriceTax() {
-            return Formats.CURRENCY.formatValue(m_ProductPriceTax);
-        }
-        
-        /**
-         *
-         * @return
-         */
-        public String printProductSubValue() {
-            return Formats.CURRENCY.formatValue(m_ProductPriceTax*m_ProductUnits);
-        }
     }
     // end
     
