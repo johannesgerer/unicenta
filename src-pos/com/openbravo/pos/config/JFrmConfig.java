@@ -102,7 +102,7 @@ public class JFrmConfig extends javax.swing.JFrame {
             public void run() {
                 
                 AppConfig config = new AppConfig(args);
-                config.load();    
+                config.load();
                 
 // Set the look and feel.
 // JG 6 May 2013 to Multicatch                

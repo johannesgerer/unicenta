@@ -19,7 +19,9 @@
 
 package com.openbravo.pos.forms;
 
+import java.awt.event.KeyEvent;
 import java.io.*;
+import java.nio.file.Paths;
 import java.util.Locale;
 import java.util.Properties;
 import java.util.logging.Level;
@@ -38,6 +40,7 @@ public class AppConfig implements AppProperties {
     private static AppConfig m_instance = null;
     private Properties m_propsconfig;
     private File configfile;
+    private Properties key_config;
       
     /**
      *
@@ -62,7 +65,7 @@ public class AppConfig implements AppProperties {
     private void init(File configfile) {
         this.configfile = configfile;
         m_propsconfig = new Properties();
-
+        key_config = new Properties();
         logger.log(Level.INFO, "Reading configuration file: {0}", configfile.getAbsolutePath());
     }
     
@@ -78,6 +81,15 @@ public class AppConfig implements AppProperties {
     @Override
     public String getProperty(String sKey) {
         return m_propsconfig.getProperty(sKey);
+    }
+    
+    public String getKeyAction(KeyEvent evt) {
+        System.out.println("getKeyAction: "+evt.toString());
+        
+        String res = key_config.getProperty(
+                   "0x"+Integer.toHexString(evt.getKeyCode()).toUpperCase());
+        
+        return "".equals(res) ? null : res;
     }
     
     /**
@@ -139,12 +151,18 @@ public class AppConfig implements AppProperties {
     public void load() {
 
         loadDefault();
-
         try {
             InputStream in = new FileInputStream(configfile);
             if (in != null) {
                 m_propsconfig.load(in);
                 in.close();
+            }
+            String keyboardfile=getProperty("keyboard.file");
+            if(keyboardfile!=null){
+                logger.log(Level.INFO, "Finding keyboard file in home dir: {0}", keyboardfile);
+                File keyboard = new File(new File(System.getProperty("user.home")), keyboardfile);
+                logger.log(Level.INFO, "Reading keyboard file: {0}", keyboard.getAbsolutePath());
+                key_config.load(new FileInputStream(keyboard));
             }
         } catch (IOException e){
             loadDefault();

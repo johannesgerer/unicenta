@@ -43,7 +43,7 @@ public abstract class JPaymentSelect extends javax.swing.JDialog
     
     private boolean accepted;
     
-    private AppView app;
+    public AppView app;
     private double m_dTotal; 
     private CustomerInfoExt customerext;
     private DataLogicSystem dlSystem;

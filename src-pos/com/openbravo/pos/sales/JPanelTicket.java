@@ -209,6 +209,7 @@ public abstract class JPanelTicket extends JPanel implements JPanelView, BeanFac
     public void init(AppView app) throws BeanFactoryException {
         
         m_App = app;
+        config = (AppConfig)app.getProperties();
         restDB = new  RestaurantDBUtils(m_App);
        
         dlSystem = (DataLogicSystem) m_App.getBean("com.openbravo.pos.forms.DataLogicSystem");
@@ -943,30 +944,35 @@ public abstract class JPanelTicket extends JPanel implements JPanelView, BeanFac
             Toolkit.getDefaultToolkit().beep();
         }       
     }
+    
+    private AppConfig config;
         
     @SuppressWarnings("empty-statement")
-    private void stateTransition(char cTrans) {
-        if(true){
-        String sTrans = String.valueOf(cTrans);
-
+    private void stateTransition(String action) {
+        if(action==null) return;
+        
         String current = m_jPrice.getText();
-        System.out.println(sTrans);
         
         int i = m_ticketlines.getSelectedIndex();
         Boolean stateWaitingForPrice = i >= 0 &&
                 m_oTicket.getLine(i).getPrice() == 0;
 
-        System.out.println("stateWaitingForPrice: "+stateWaitingForPrice);
-        
-        switch (cTrans) {
-            case '?': // reprint previous ticket
+        System.out.println("stateTransition: "+action+"  stateWaitingForPrice: "+stateWaitingForPrice);
+        switch(action){                
+            case "down":
+                m_jDown.doClick();
+                return;
+            case "up":
+                m_jUp.doClick();
+                return;
+            case "reprint": // reprint previous ticket
                 if(m_oTicket_Previous!=null)
                     printTicket( "Printer.Ticket", m_oTicket_Previous, null); 
                 return;
-            case '$':// close cash                
+            case "kassenabschluss":// close cash                
                 m_App.getAppUserView().showTask("com.openbravo.pos.panels.JPanelCloseMoney");
                 return;
-            case '_':  //logout
+            case "logout":
                 int res = JOptionPane.showConfirmDialog(this, AppLocal.getIntString("message.wannalogout")
                         , AppLocal.getIntString("title.editor"), JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE);
                 if (res == JOptionPane.YES_OPTION) {        
@@ -974,7 +980,7 @@ public abstract class JPanelTicket extends JPanel implements JPanelView, BeanFac
                     ((JRootApp)m_App).closeAppView();
                 }
                 return;
-            case '=':
+            case "zws":
                 if (!stateWaitingForPrice && m_oTicket.getLinesCount() > 0)
                     if (closeTicket(m_oTicket, m_oTicketExt))
                         m_ticketsbag.deleteTicket();                                    
@@ -983,7 +989,7 @@ public abstract class JPanelTicket extends JPanel implements JPanelView, BeanFac
                 else
                     Toolkit.getDefaultToolkit().beep();
                 return;
-            case '%': //discount on total
+            case "discount": //discount on total
                 if(current.length()==0 || stateWaitingForPrice) return;
                 Double rate = Double.parseDouble(current)/100;
                 if(rate<1 && rate>0 ){
@@ -1004,54 +1010,58 @@ public abstract class JPanelTicket extends JPanel implements JPanelView, BeanFac
                 m_jPrice.setText("");
                 refreshTicket();
                 return;
-            case '#': // open drawer
+            case "cancel":
+                m_jPrice.setText("");
+                return;
+            case "open": // open drawer
                 printTicket("Printer.OpenDrawer");
                 return;
-            case '-'://delete line       
+            case "cancelLine"://delete line       
                 m_jDelete.doClick();
                 return;
                 
-            case ',': //cancel sale 
+            case "neverever": //cancel sale 
                 return; //deactivate for security reasons. instead delete single 
                 // lines which will be visible in kassenbericht
-            case '.': //new sale
-                ((JTicketsBagShared)m_ticketsbag).processKey(cTrans);
+            case "new": //new sale
+                ((JTicketsBagShared)m_ticketsbag).processAction(action);
                 return;
-            case '0':
-            case '1':
-            case '2':
-            case '3':
-            case '4':
-            case '5':
-            case '6':
-            case '7':
-            case '8':
-            case '9':
-                m_jPrice.setText(current + sTrans);
+            case "0":
+            case "1":
+            case "2":
+            case "3":
+            case "4":
+            case "5":
+            case "6":
+            case "7":
+            case "8":
+            case "9":
+            case "00":
+                m_jPrice.setText(current + action);
                 return;
-            case '/': //interpret as article number
+            case "article": //interpret as article number
                 if (stateWaitingForPrice || current.length() == 0) 
                     return;
                 m_jPrice.setText("");
                 if(!incProductByCode(current)) return;
                 setLineState("");
                 return;
-            case '*': //intepret as amount
+            case "amount": //intepret as amount
                 if (current.length() == 0) return;
                 jAmount.setText(current);
                 m_jPrice.setText("");
                 return;
-            case '\n': //register price and amount
+            case "enter": //register price and amount
                 m_jPrice.setText("");
                 setLineState(current);
                 return;
             default: //interpret as hotkey article reference
-                if (stateWaitingForPrice || !incProductByRef(sTrans)) return;
+                if (stateWaitingForPrice || !incProductByRef(action)) return;
                 setLineState(current);
                 return;
-        }}
-        Logger.getLogger(JPanelTicket.class.getName()).log(Level.SEVERE, "stateTransition not handled!!!");
-
+        }
+    }
+       private void oldStateTransition(char cTrans){
         if ((cTrans == '\n') || (cTrans == '?')) {
             // Codigo de barras introducido
             if (m_sBarcode.length() > 0) {
@@ -2491,8 +2501,6 @@ if (pickupSize!=null && (Integer.parseInt(pickupSize) >= tmpPickupId.length())){
     }// </editor-fold>//GEN-END:initComponents
 
     private void m_jbtnScaleActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_m_jbtnScaleActionPerformed
-
-        stateTransition('\u00a7');
         
     }//GEN-LAST:event_m_jbtnScaleActionPerformed
 
@@ -2515,10 +2523,8 @@ if (pickupSize!=null && (Integer.parseInt(pickupSize) >= tmpPickupId.length())){
     }//GEN-LAST:event_m_jEditLineActionPerformed
 
     private void m_jKeyFactoryKeyTyped(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_m_jKeyFactoryKeyTyped
-
         m_jKeyFactory.setText(null);
-        stateTransition(evt.getKeyChar());
-
+        stateTransition(config.getKeyAction(evt));        
     }//GEN-LAST:event_m_jKeyFactoryKeyTyped
 
     private void m_jDeleteActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_m_jDeleteActionPerformed
@@ -2700,24 +2706,15 @@ m_App.getAppUserView().showTask("com.openbravo.pos.customers.CustomersPanel");
     }//GEN-LAST:event_j_btnKitchenPrtActionPerformed
 
     private void m_jEnterActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_m_jEnterActionPerformed
-
-        stateTransition('\n');
+        
     }//GEN-LAST:event_m_jEnterActionPerformed
 
     private void m_jNumberKeysKeyPerformed(com.openbravo.beans.JNumberEvent evt) {//GEN-FIRST:event_m_jNumberKeysKeyPerformed
-
-        stateTransition(evt.getKey());
+        
     }//GEN-LAST:event_m_jNumberKeysKeyPerformed
 
     private void m_jKeyFactoryKeyReleased(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_m_jKeyFactoryKeyReleased
-        switch(evt.getKeyCode()){
-            case KeyEvent.VK_DOWN:
-                m_jDown.doClick();
-                return;
-            case KeyEvent.VK_UP:
-                m_jUp.doClick();
-                return;
-        }
+        stateTransition(config.getKeyAction(evt));
     }//GEN-LAST:event_m_jKeyFactoryKeyReleased
 
 

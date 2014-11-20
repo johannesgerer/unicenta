@@ -300,7 +300,7 @@ public class PaymentsModel {
               "FROM TICKETLINES, TICKETS, RECEIPTS, PRODUCTS, TAXES " +
               "WHERE TICKETLINES.PRODUCT = PRODUCTS.ID AND TICKETLINES.TICKET = TICKETS.ID "
                 + "AND TICKETS.ID = RECEIPTS.ID AND TICKETLINES.TAXID = TAXES.ID AND RECEIPTS.MONEY = ? " +
-              "GROUP BY PRODUCTS.ID"
+              "GROUP BY PRODUCTS.ID order by CAST(PRODUCTS.CODE as Int)"
             , SerializerWriteString.INSTANCE
             , new SerializerReadClass(PaymentsModel.ProductSalesLine.class)) //new SerializerReadBasic(new Datas[] {Datas.STRING, Datas.DOUBLE}))
             .list(app.getActiveCashIndex());

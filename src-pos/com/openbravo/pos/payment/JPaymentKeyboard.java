@@ -20,6 +20,7 @@
 package com.openbravo.pos.payment;
 import com.openbravo.format.Formats;
 import com.openbravo.pos.customers.CustomerInfoExt;
+import com.openbravo.pos.forms.AppConfig;
 import com.openbravo.pos.forms.AppLocal;
 import com.openbravo.pos.util.RoundUtils;
 import java.awt.Component;
@@ -133,6 +134,9 @@ public class JPaymentKeyboard extends javax.swing.JPanel implements JPaymentInte
             public void keyPressed(java.awt.event.KeyEvent evt) {
                 m_jTenderedKeyPressed(evt);
             }
+            public void keyReleased(java.awt.event.KeyEvent evt) {
+                m_jTenderedKeyReleased(evt);
+            }
         });
         jPanel4.add(m_jTendered, java.awt.BorderLayout.CENTER);
 
@@ -155,8 +159,9 @@ public class JPaymentKeyboard extends javax.swing.JPanel implements JPaymentInte
         add(jPanel4, java.awt.BorderLayout.CENTER);
     }// </editor-fold>//GEN-END:initComponents
 
-    private void m_jTenderedKeyTyped(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_m_jTenderedKeyTyped
-        char c = evt.getKeyChar();
+    private void stateTransistion(String action)
+    {
+        if(null ==  action) return;
         
         Double value = m_dTotal;
         if(jAmount.getText().length()>0)
@@ -166,32 +171,33 @@ public class JPaymentKeyboard extends javax.swing.JPanel implements JPaymentInte
         System.out.println(String.valueOf("m_dTotal: "+m_dTotal));
         
         PaymentInfo payment=null;
-        switch(c){
-            case '0':
-            case '1':
-            case '2':
-            case '3':
-            case '4':
-            case '5':
-            case '6':
-            case '7':
-            case '8':
-            case '9':
-                jAmount.setText(jAmount.getText()+c);
+        switch(action){
+            case "0":
+            case "1":
+            case "2":
+            case "3":
+            case "4":
+            case "5":
+            case "6":
+            case "7":
+            case "8":
+            case "9":
+            case "00":
+                jAmount.setText(jAmount.getText()+action);
                 return;
-            case 'b': //bar
+            case "bar": //cash
                 payment = new PaymentInfoCash_original(Math.min(value,m_dTotal), value);
                 break;
-            case 'g': //gutschein
+            case "gutschein": //gutschein
                 payment = nonCash(value,"paperin");
                 break;
-            case 'k': //kreditcarte
+            case "kreditkarte": //kreditkarte
                 payment = nonCash(value,"magcard");
                 break;
-            case 'e': //ec
+            case "ec": //ec
                 payment = nonCash(value, "cheque");
                 break;
-            case 'c': //clear
+            case "cancel": //clear
                 jAmount.setText("");
                 return;
             default:
@@ -204,12 +210,21 @@ public class JPaymentKeyboard extends javax.swing.JPanel implements JPaymentInte
             m_notifier.addPayment(payment, done);
         }
         jAmount.setText("");
+    }
+    
+    private void m_jTenderedKeyTyped(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_m_jTenderedKeyTyped
+        
     }//GEN-LAST:event_m_jTenderedKeyTyped
 
     private void m_jTenderedKeyPressed(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_m_jTenderedKeyPressed
         if(evt.getKeyCode()==KeyEvent.VK_ESCAPE)
             m_notifier.dispose();
     }//GEN-LAST:event_m_jTenderedKeyPressed
+
+    private void m_jTenderedKeyReleased(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_m_jTenderedKeyReleased
+        // TODO add your handling code here:
+        stateTransistion(((AppConfig)m_notifier.app.getProperties()).getKeyAction(evt));
+    }//GEN-LAST:event_m_jTenderedKeyReleased
     
     private PaymentInfo nonCash(Double value,String name){
         if(RoundUtils.compare(value,m_dTotal)>0) return null;
