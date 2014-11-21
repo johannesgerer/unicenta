@@ -781,11 +781,16 @@ public class JRootApp extends JPanel implements AppView {
         });  
     }
     
-    private void processKey(char c) {
-        switch(c){
-            case '\n':
-            case '?':
-            
+    private void stateTransition(String action) {
+        
+        try{
+            Integer.parseInt(action);
+            jCard.setText(jCard.getText()+action);
+            return;
+        }catch(NumberFormatException e){}
+        
+        switch(action){
+            case "enter":
                 AppUser user = null;
                 try {
                     user = m_dlSystem.findPeopleByCard(String.valueOf(jCard.getText()));
@@ -803,16 +808,14 @@ public class JRootApp extends JPanel implements AppView {
                 jCard.setText("");
 
                 return;
-            case '_':
+            case "logout":
                 int res = JOptionPane.showConfirmDialog(this, AppLocal.getIntString("message.wannalogout")
                         , AppLocal.getIntString("title.editor"), JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE);
                 if (res == JOptionPane.YES_OPTION){
                     tryToClose();                
                     break;
-                }else
-                    return;
+                }
         }
-        jCard.setText(jCard.getText()+c);
     }
 
         
@@ -923,8 +926,8 @@ public class JRootApp extends JPanel implements AppView {
 
         m_txtKeys.setPreferredSize(new java.awt.Dimension(0, 0));
         m_txtKeys.addKeyListener(new java.awt.event.KeyAdapter() {
-            public void keyTyped(java.awt.event.KeyEvent evt) {
-                m_txtKeysKeyTyped(evt);
+            public void keyReleased(java.awt.event.KeyEvent evt) {
+                m_txtKeysKeyReleased(evt);
             }
         });
 
@@ -1024,13 +1027,13 @@ public class JRootApp extends JPanel implements AppView {
         
     }//GEN-LAST:event_m_jCloseActionPerformed
 
-    private void m_txtKeysKeyTyped(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_m_txtKeysKeyTyped
-
+    private void m_txtKeysKeyReleased(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_m_txtKeysKeyReleased
+        
         m_txtKeys.setText("0");
         
-        processKey(evt.getKeyChar());
-
-    }//GEN-LAST:event_m_txtKeysKeyTyped
+        for(String action : ((AppConfig)m_props).getKeyAction(evt))
+            stateTransition(action);
+    }//GEN-LAST:event_m_txtKeysKeyReleased
 
 
     // Variables declaration - do not modify//GEN-BEGIN:variables

@@ -159,7 +159,7 @@ public class JPaymentKeyboard extends javax.swing.JPanel implements JPaymentInte
         add(jPanel4, java.awt.BorderLayout.CENTER);
     }// </editor-fold>//GEN-END:initComponents
 
-    private void stateTransistion(String action)
+    private void stateTransition(String action)
     {
         Double value = m_dTotal;
         if(jAmount.getText().length()>0)
@@ -216,7 +216,7 @@ public class JPaymentKeyboard extends javax.swing.JPanel implements JPaymentInte
     private void m_jTenderedKeyReleased(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_m_jTenderedKeyReleased
         // TODO add your handling code here:
         for(String action : ((AppConfig)m_notifier.app.getProperties()).getKeyAction(evt))
-            stateTransistion(action);
+            stateTransition(action);
     }//GEN-LAST:event_m_jTenderedKeyReleased
     
     private PaymentInfo nonCash(Double value,String name){

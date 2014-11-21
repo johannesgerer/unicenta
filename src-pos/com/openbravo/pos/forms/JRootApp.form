@@ -327,7 +327,7 @@
                         </Property>
                       </Properties>
                       <Events>
-                        <EventHandler event="keyTyped" listener="java.awt.event.KeyListener" parameters="java.awt.event.KeyEvent" handler="m_txtKeysKeyTyped"/>
+                        <EventHandler event="keyReleased" listener="java.awt.event.KeyListener" parameters="java.awt.event.KeyEvent" handler="m_txtKeysKeyReleased"/>
                       </Events>
                     </Component>
                     <Component class="javax.swing.JButton" name="m_jClose">
