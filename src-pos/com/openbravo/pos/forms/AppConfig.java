@@ -83,13 +83,13 @@ public class AppConfig implements AppProperties {
         return m_propsconfig.getProperty(sKey);
     }
     
-    public String getKeyAction(KeyEvent evt) {
+    public String[] getKeyAction(KeyEvent evt) {
         System.out.println("getKeyAction: "+evt.toString());
         
         String res = key_config.getProperty(
                    "0x"+Integer.toHexString(evt.getKeyCode()).toUpperCase());
         
-        return "".equals(res) ? null : res;
+        return res == null || "".equals(res) ? new String[0] : res.split(",");
     }
     
     /**

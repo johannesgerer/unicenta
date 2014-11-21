@@ -450,7 +450,6 @@ public abstract class JPanelTicket extends JPanel implements JPanelView, BeanFac
      * @param oTicket
      * @param oTicketExt
      */
-    @SuppressWarnings("empty-statement")
     @Override
     public void setActiveTicket(TicketInfo oTicket, Object oTicketExt) {
 // check if a inactivity timer has been created, and if it is not running start up again
@@ -817,26 +816,6 @@ public abstract class JPanelTicket extends JPanel implements JPanelView, BeanFac
         paintTicketLine(i, newline);        
     }
     
-    private Boolean incProductByRef(String sRef) {
-    // precondicion: sRef != null
-        try {
-            ProductInfoExt oProduct = dlSales.getProductInfoByReference(sRef);
-            if (oProduct == null) {                  
-                Toolkit.getDefaultToolkit().beep();                   
-                new MessageInf(MessageInf.SGN_WARNING, AppLocal.getIntString("message.noproduct") + " '"+sRef+"'").show(this);           
-                stateToZero();
-                return false;
-            } else {
-                // Se anade directamente una unidad con el precio y todo
-                incProduct(oProduct);
-                return true;
-            }
-        } catch (BasicException eData) {
-            stateToZero();           
-            new MessageInf(eData).show(this);           
-            return false;
-        }
-    }
     
     private Boolean incProductByCode(String sCode) {
     // precondicion: sCode != null
@@ -947,10 +926,7 @@ public abstract class JPanelTicket extends JPanel implements JPanelView, BeanFac
     
     private AppConfig config;
         
-    @SuppressWarnings("empty-statement")
     private void stateTransition(String action) {
-        if(action==null) return;
-        
         String current = m_jPrice.getText();
         
         int i = m_ticketlines.getSelectedIndex();
@@ -958,6 +934,26 @@ public abstract class JPanelTicket extends JPanel implements JPanelView, BeanFac
                 m_oTicket.getLine(i).getPrice() == 0;
 
         System.out.println("stateTransition: "+action+"  stateWaitingForPrice: "+stateWaitingForPrice);
+        
+        
+        try{
+            Integer.parseInt(action);
+            m_jPrice.setText(current + action);
+            return;
+        }catch(NumberFormatException e){}
+        
+        //barcode
+        if(action.charAt(0)==';')
+        {
+            String s = action.substring(1);
+            try{
+                Integer.parseInt(s);
+                if (!stateWaitingForPrice && incProductByCode(s))
+                    setLineState(current);
+            }catch(NumberFormatException e){}
+            return;
+        }
+        
         switch(action){                
             case "down":
                 m_jDown.doClick();
@@ -1003,8 +999,7 @@ public abstract class JPanelTicket extends JPanel implements JPanelView, BeanFac
                                         line.getProductTaxCategoryID(),
                                         line.getMultiply(),
                                         RoundUtils.round(line.getPrice() * (1-rate)),
-                                        line.getTaxInfo(),
-                                        line.getProductCode()));
+                                        line.getTaxInfo()));
                     }
                 }
                 m_jPrice.setText("");
@@ -1026,19 +1021,6 @@ public abstract class JPanelTicket extends JPanel implements JPanelView, BeanFac
             case "new": //new sale
                 ((JTicketsBagShared)m_ticketsbag).processAction(action);
                 return;
-            case "0":
-            case "1":
-            case "2":
-            case "3":
-            case "4":
-            case "5":
-            case "6":
-            case "7":
-            case "8":
-            case "9":
-            case "00":
-                m_jPrice.setText(current + action);
-                return;
             case "article": //interpret as article number
                 if (stateWaitingForPrice || current.length() == 0) 
                     return;
@@ -1053,10 +1035,6 @@ public abstract class JPanelTicket extends JPanel implements JPanelView, BeanFac
                 return;
             case "enter": //register price and amount
                 m_jPrice.setText("");
-                setLineState(current);
-                return;
-            default: //interpret as hotkey article reference
-                if (stateWaitingForPrice || !incProductByRef(action)) return;
                 setLineState(current);
                 return;
         }
@@ -2524,7 +2502,8 @@ if (pickupSize!=null && (Integer.parseInt(pickupSize) >= tmpPickupId.length())){
 
     private void m_jKeyFactoryKeyTyped(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_m_jKeyFactoryKeyTyped
         m_jKeyFactory.setText(null);
-        stateTransition(config.getKeyAction(evt));        
+        for(String action : config.getKeyAction(evt))
+            stateTransition(action);
     }//GEN-LAST:event_m_jKeyFactoryKeyTyped
 
     private void m_jDeleteActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_m_jDeleteActionPerformed
@@ -2714,7 +2693,8 @@ m_App.getAppUserView().showTask("com.openbravo.pos.customers.CustomersPanel");
     }//GEN-LAST:event_m_jNumberKeysKeyPerformed
 
     private void m_jKeyFactoryKeyReleased(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_m_jKeyFactoryKeyReleased
-        stateTransition(config.getKeyAction(evt));
+        for(String action : config.getKeyAction(evt))
+            stateTransition(action);
     }//GEN-LAST:event_m_jKeyFactoryKeyReleased
 
 

@@ -161,8 +161,6 @@ public class JPaymentKeyboard extends javax.swing.JPanel implements JPaymentInte
 
     private void stateTransistion(String action)
     {
-        if(null ==  action) return;
-        
         Double value = m_dTotal;
         if(jAmount.getText().length()>0)
             value=RoundUtils.round(Double.parseDouble(jAmount.getText())/100d);
@@ -171,20 +169,14 @@ public class JPaymentKeyboard extends javax.swing.JPanel implements JPaymentInte
         System.out.println(String.valueOf("m_dTotal: "+m_dTotal));
         
         PaymentInfo payment=null;
-        switch(action){
-            case "0":
-            case "1":
-            case "2":
-            case "3":
-            case "4":
-            case "5":
-            case "6":
-            case "7":
-            case "8":
-            case "9":
-            case "00":
-                jAmount.setText(jAmount.getText()+action);
-                return;
+        
+        try{
+            Integer.parseInt(action);
+            jAmount.setText(jAmount.getText()+action);
+            return;
+        }catch(NumberFormatException e){}
+        
+        switch(action){        
             case "bar": //cash
                 payment = new PaymentInfoCash_original(Math.min(value,m_dTotal), value);
                 break;
@@ -223,7 +215,8 @@ public class JPaymentKeyboard extends javax.swing.JPanel implements JPaymentInte
 
     private void m_jTenderedKeyReleased(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_m_jTenderedKeyReleased
         // TODO add your handling code here:
-        stateTransistion(((AppConfig)m_notifier.app.getProperties()).getKeyAction(evt));
+        for(String action : ((AppConfig)m_notifier.app.getProperties()).getKeyAction(evt))
+            stateTransistion(action);
     }//GEN-LAST:event_m_jTenderedKeyReleased
     
     private PaymentInfo nonCash(Double value,String name){

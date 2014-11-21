@@ -801,7 +801,7 @@ public class PaymentsModel {
          * @return
          */
         public String printProductName() {
-            return StringUtils.encodeXML(m_ProductName);
+            return StringUtils.encodeXML(m_Code + " " + m_ProductName);
         }
         public String printProductCode() {
             return StringUtils.encodeXML(m_Code);

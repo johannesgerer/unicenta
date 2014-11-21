@@ -25,7 +25,12 @@
         <line></line>
         <line></line>
         <line size="1">
-            <text align ="center" length="42" bold="true">Kassenabschluss</text>
+            
+        #if (${payments.printDateEnd()} == "")
+         <text align ="center" length="42" bold="true">Vorschau</text>
+        #else
+                 <text align ="center" length="42" bold="true">Kassenabschluss</text>
+        #end
         </line>
         <line>
             <text length="18">Terminal:</text>
@@ -65,8 +70,7 @@
         </line>
         #foreach ($line in $payments.getProductSalesLines())
         <line>
-            <text align ="left" length="8">${line.printProductCode()}</text>
-            <text align ="left" length="14">${line.printProductName()}</text>
+            <text align ="left" length="22">${line.printProductName()}</text>
             <text align ="right" length="8">${line.printProductUnits()} </text>
             <text align ="right" length="12">${line.printProductTotal()}</text>
         </line>
