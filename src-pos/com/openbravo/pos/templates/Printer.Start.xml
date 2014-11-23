@@ -21,12 +21,12 @@
  -->
 
 <output>
-    <display animation="scroll">
+    <display>
         <line>
-            <text></text>
+            <text>Herzlich Willkommen</text>
         </line>
         <line>
-            <text>Herzlich Willkommen im InnKaufhaus!</text>
+            <text>im InnKaufhaus!</text>
         </line>
     </display>
 </output>
