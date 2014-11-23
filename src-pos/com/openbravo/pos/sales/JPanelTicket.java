@@ -1007,6 +1007,7 @@ public abstract class JPanelTicket extends JPanel implements JPanelView, BeanFac
                 return;
             case "cancel":
                 m_jPrice.setText("");
+                jAmount.setText("1");
                 return;
             case "open": // open drawer
                 printTicket("Printer.OpenDrawer");
