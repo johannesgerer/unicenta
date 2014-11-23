@@ -1013,6 +1013,8 @@ public abstract class JPanelTicket extends JPanel implements JPanelView, BeanFac
                 jAmount.setText("1");
                 return;
             case "deleteAllLines":
+                m_jPrice.setText("");
+                jAmount.setText("1");
                 for(int j = 0; j < m_ticketlines.getRowCount();)
                     removeTicketLine(j);
             case "open": // open drawer
