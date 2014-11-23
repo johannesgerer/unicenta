@@ -781,16 +781,11 @@ public class JRootApp extends JPanel implements AppView {
         });  
     }
     
-    private void stateTransition(String action) {
-        
-        try{
-            Integer.parseInt(action);
-            jCard.setText(jCard.getText()+action);
-            return;
-        }catch(NumberFormatException e){}
-        
+    private void stateTransition(String action) {        
         switch(action){
             case "enter":
+                if("".equals(jCard.getText()))
+                        return;
                 AppUser user = null;
                 try {
                     user = m_dlSystem.findPeopleByCard(String.valueOf(jCard.getText()));
@@ -806,7 +801,6 @@ public class JRootApp extends JPanel implements AppView {
                 }
 
                 jCard.setText("");
-
                 return;
             case "logout":
                 int res = JOptionPane.showConfirmDialog(this, AppLocal.getIntString("message.wannalogout")
@@ -815,6 +809,9 @@ public class JRootApp extends JPanel implements AppView {
                     tryToClose();                
                     break;
                 }
+                return;
+            default:
+                jCard.setText(jCard.getText()+action);
         }
     }
 
