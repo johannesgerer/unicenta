@@ -929,10 +929,13 @@ public abstract class JPanelTicket extends JPanel implements JPanelView, BeanFac
     private void stateTransition(String action) {
         String current = m_jPrice.getText();
         
+        Boolean stateWaitingForPrice;
+        {
         int i = m_ticketlines.getSelectedIndex();
-        Boolean stateWaitingForPrice = i >= 0 &&
+        stateWaitingForPrice = i >= 0 &&
                 m_oTicket.getLine(i).getPrice() == 0;
-
+        }
+        
         System.out.println("stateTransition: "+action+"  stateWaitingForPrice: "+stateWaitingForPrice);
         
         
@@ -1009,6 +1012,9 @@ public abstract class JPanelTicket extends JPanel implements JPanelView, BeanFac
                 m_jPrice.setText("");
                 jAmount.setText("1");
                 return;
+            case "deleteAllLines":
+                for(int j = 0; j < m_ticketlines.getRowCount();)
+                    removeTicketLine(j);
             case "open": // open drawer
                 printTicket("Printer.OpenDrawer");
                 return;

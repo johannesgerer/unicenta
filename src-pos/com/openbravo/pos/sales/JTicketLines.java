@@ -210,7 +210,13 @@ public class JTicketLines extends javax.swing.JPanel {
      * @return
      */
     public int getSelectedIndex() {
+        
         return m_jTicketTable.getSelectionModel().getMinSelectionIndex(); // solo sera uno, luego no importa...
+    }
+    
+    public int getRowCount()
+    {
+        return m_jTicketTable.getRowCount();
     }
     
     /**
