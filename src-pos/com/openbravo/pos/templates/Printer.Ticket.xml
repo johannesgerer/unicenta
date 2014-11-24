@@ -81,8 +81,11 @@
 		<text align ="right" length="10">${ticketline.printValue()}</text>
 	</line>
 
-	#if ($ticketline.productAttSetInstId)
-		<line><text align ="left" length="42">${ticketline.productAttSetInstDesc}</text></line>
+	#if ($ticketline.getDiscount()>0)
+            <line>
+                <text align ="left" length="22">  inkl. Rabatt  </text>
+                <text align ="right" length="20">${ticketline.printDiscount()}  </text>
+            </line>
 	#end
 #end
 	<line><text align="left" length="42">------------------------------------------</text></line>

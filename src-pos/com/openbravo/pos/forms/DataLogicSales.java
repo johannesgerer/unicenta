@@ -1042,14 +1042,33 @@ public class DataLogicSales extends BeanFactoryDataSingle {
                     : loadCustomerExt(customerid));
 
             ticket.setLines(new PreparedSentence(s
-                , "SELECT L.TICKET, L.LINE, L.PRODUCT, L.ATTRIBUTESETINSTANCE_ID, L.UNITS, L.PRICE, T.ID, T.NAME, T.CATEGORY, T.CUSTCATEGORY, T.PARENTID, T.RATE, T.RATECASCADE, T.RATEORDER, L.ATTRIBUTES " +
+                , "SELECT L.TICKET, "
+                        + "L.LINE, "
+                        + "L.PRODUCT, "
+                        + "L.ATTRIBUTESETINSTANCE_ID, "
+                        + "L.UNITS, "
+                        + "L.PRICE, "
+                        + "L.DISCOUNT, "
+                        + "T.ID, "
+                        + "T.NAME, "
+                        + "T.CATEGORY, "
+                        + "T.CUSTCATEGORY, "
+                        + "T.PARENTID, "
+                        + "T.RATE, "
+                        + "T.RATECASCADE, "
+                        + "T.RATEORDER, "
+                        + "L.ATTRIBUTES " +
                   "FROM TICKETLINES L, TAXES T WHERE L.TAXID = T.ID AND L.TICKET = ? ORDER BY L.LINE"
                 , SerializerWriteString.INSTANCE
                 , new SerializerReadClass(TicketLineInfo.class)).list(ticket.getId()));
             ticket.setPayments(new PreparedSentence(s
 // JG 10 Oct 13 Bug Fix + Add Cardname 20 Oct  
 //                    , "SELECT PAYMENT, TOTAL, TRANSID TENDERED FROM PAYMENTS WHERE RECEIPT = ?" 
-                    , "SELECT PAYMENT, TOTAL, TRANSID, TENDERED, CARDNAME FROM PAYMENTS WHERE RECEIPT = ?"
+                    , "SELECT PAYMENT, "
+                            + "TOTAL, "
+                            + "TRANSID, "
+                            + "TENDERED, "
+                            + "CARDNAME FROM PAYMENTS WHERE RECEIPT = ?"
                 , SerializerWriteString.INSTANCE
                 , new SerializerReadClass(PaymentInfoTicket.class)).list(ticket.getId()));
         }
@@ -1129,7 +1148,16 @@ public Object transact() throws BasicException {
             );
 
     SentenceExec ticketlineinsert = new PreparedSentence(s
-        , "INSERT INTO TICKETLINES (TICKET, LINE, PRODUCT, ATTRIBUTESETINSTANCE_ID, UNITS, PRICE, TAXID, ATTRIBUTES) VALUES (?, ?, ?, ?, ?, ?, ?, ?)"
+        , "INSERT INTO TICKETLINES "
+                + "(TICKET, "
+                + "LINE, "
+                + "PRODUCT, "
+                + "ATTRIBUTESETINSTANCE_ID, "
+                + "UNITS, "
+                + "PRICE, "
+                + "DISCOUNT, "
+                + "TAXID, "
+                + "ATTRIBUTES) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)"
         , SerializerWriteBuilder.INSTANCE);
   
     for (TicketLineInfo l : ticket.getLines()) {

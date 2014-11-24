@@ -74,6 +74,12 @@
             <text align ="right" length="8">${line.printProductUnits()} </text>
             <text align ="right" length="12">${line.printProductTotal()}</text>
         </line>
+	#if ($line.getM_ProductDiscount()>0)
+            <line>
+                <text align ="left" length="20">  inkl. Rabatt  </text>
+                <text align ="right" length="22">${line.printProductDiscount()}       </text>
+            </line>
+	#end
         #end
         <line>
             <text>------------------------------------------</text>

@@ -295,8 +295,11 @@ public class PaymentsModel {
         }
  
         List products = new StaticSentence(app.getSession()
-            , "SELECT PRODUCTS.NAME, PRODUCTS.CODE, SUM(TICKETLINES.UNITS), "
-              + "SUM((TICKETLINES.PRICE + TICKETLINES.PRICE * TAXES.RATE ) * TICKETLINES.UNITS) " +
+            , "SELECT PRODUCTS.NAME, "
+                    + "PRODUCTS.CODE, "
+                    + "SUM(TICKETLINES.UNITS), "
+                    + "SUM(TICKETLINES.PRICE * ( 1+ TAXES.RATE ) * TICKETLINES.UNITS), "
+                    + "SUM(TICKETLINES.DISCOUNT * ( 1+ TAXES.RATE ) * TICKETLINES.UNITS) " +
               "FROM TICKETLINES, TICKETS, RECEIPTS, PRODUCTS, TAXES " +
               "WHERE TICKETLINES.PRODUCT = PRODUCTS.ID AND TICKETLINES.TICKET = TICKETS.ID "
                 + "AND TICKETS.ID = RECEIPTS.ID AND TICKETLINES.TAXID = TAXES.ID AND RECEIPTS.MONEY = ? " +
@@ -782,6 +785,7 @@ public class PaymentsModel {
         private String m_Code;
         private Double m_ProductUnits;
         private Double m_ProductTotal;
+        private Double m_ProductDiscount;
  
         /**
          *
@@ -794,6 +798,7 @@ public class PaymentsModel {
             m_Code = dr.getString(2);
             m_ProductUnits = dr.getDouble(3);
             m_ProductTotal = dr.getDouble(4);            
+            m_ProductDiscount = dr.getDouble(5);
         }
  
         /**
@@ -813,6 +818,10 @@ public class PaymentsModel {
          */
         public String printProductUnits() {
             return Formats.DOUBLE.formatValue(m_ProductUnits);
+        }
+        
+        public String printProductDiscount() {
+            return Formats.CURRENCY.formatValue(m_ProductDiscount);
         }
  
         /**
@@ -841,6 +850,10 @@ public class PaymentsModel {
 
         public String getM_Code() {
             return m_Code;
+        }
+
+        public Double getM_ProductDiscount() {
+            return m_ProductDiscount;
         }
  
     }

@@ -47,6 +47,7 @@ import com.openbravo.pos.scripting.ScriptFactory;
 import com.openbravo.pos.ticket.ProductInfoExt;
 import com.openbravo.pos.ticket.TaxInfo;
 import com.openbravo.pos.ticket.TicketInfo;
+import com.openbravo.pos.ticket.Price;
 import com.openbravo.pos.ticket.TicketLineInfo;
 import com.openbravo.pos.util.AltEncrypter;
 import com.openbravo.pos.util.InactivityListener;
@@ -632,10 +633,10 @@ public abstract class JPanelTicket extends JPanel implements JPanelView, BeanFac
             if (m_jaddtax.isSelected()) {
                 dPrice /= (1 + tax.getRate());
             }
-            addTicketLine(new TicketLineInfo(oProduct, dMul, dPrice, tax, (java.util.Properties) (oProduct.getProperties().clone())));
+            addTicketLine(new TicketLineInfo(oProduct, dMul, new Price(dPrice,0), tax, (java.util.Properties) (oProduct.getProperties().clone())));
         } else {
             TaxInfo tax = taxeslogic.getTaxInfo(oProduct.getTaxCategoryID(), m_oTicket.getCustomer());
-            addTicketLine(new TicketLineInfo(oProduct, dMul, dPrice, tax, (java.util.Properties) (oProduct.getProperties().clone())));
+            addTicketLine(new TicketLineInfo(oProduct, dMul, new Price(dPrice,0), tax, (java.util.Properties) (oProduct.getProperties().clone())));
         }
     }
 
@@ -817,7 +818,7 @@ public abstract class JPanelTicket extends JPanel implements JPanelView, BeanFac
             price = Double.parseDouble(current) / 100;
         }
 
-        newline.setPriceTax(price);
+        newline.overwritePriceTax(price);
         paintTicketLine(i, newline);
     }
 
@@ -1009,7 +1010,7 @@ public abstract class JPanelTicket extends JPanel implements JPanelView, BeanFac
                     String sdiscount = Formats.PERCENT.formatValue(rate);
                     for (int number = first; number < last; number++) {
                         TicketLineInfo line = m_oTicket.getLine(number);
-                        line.setPrice(line.getPrice() * (1 - rate));
+                        line.applyDiscount(rate);
                         line.setProperty("product.name", line.getProductName() + " - " + sdiscount);
                         paintTicketLine(number,line);
                     }
@@ -1320,7 +1321,7 @@ public abstract class JPanelTicket extends JPanel implements JPanelView, BeanFac
                         if (value != null) {
                             TicketLineInfo newline = new TicketLineInfo(m_oTicket.getLine(i));
                             newline.setMultiply(value);
-                            newline.setPrice(Math.abs(newline.getPrice()));
+                            newline.overwritePrice(Math.abs(newline.getPrice()));
                             paintTicketLine(i, newline);
                         }
                     } catch (ScaleException e) {
@@ -1393,11 +1394,11 @@ public abstract class JPanelTicket extends JPanel implements JPanelView, BeanFac
                     TicketLineInfo newline = new TicketLineInfo(m_oTicket.getLine(i));
                     if (m_oTicket.getTicketType() == TicketInfo.RECEIPT_REFUND) {
                         newline.setMultiply(-dPor);
-                        newline.setPrice(Math.abs(newline.getPrice()));
+                        newline.overwritePrice(Math.abs(newline.getPrice()));
                         paintTicketLine(i, newline);
                     } else {
                         newline.setMultiply(dPor);
-                        newline.setPrice(Math.abs(newline.getPrice()));
+                        newline.overwritePrice(Math.abs(newline.getPrice()));
                         paintTicketLine(i, newline);
                     }
                 }
@@ -1415,7 +1416,7 @@ public abstract class JPanelTicket extends JPanel implements JPanelView, BeanFac
                     TicketLineInfo newline = new TicketLineInfo(m_oTicket.getLine(i));
                     if (m_oTicket.getTicketType() == TicketInfo.RECEIPT_NORMAL) {
                         newline.setMultiply(dPor);
-                        newline.setPrice(-Math.abs(newline.getPrice()));
+                        newline.overwritePrice(-Math.abs(newline.getPrice()));
                         paintTicketLine(i, newline);
                     }
                 }
