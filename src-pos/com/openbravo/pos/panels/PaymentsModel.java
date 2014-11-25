@@ -211,7 +211,8 @@ public class PaymentsModel {
         
         // Sales
         Object[] recsales = (Object []) new StaticSentence(app.getSession(),
-                "SELECT COUNT(DISTINCT RECEIPTS.ID), SUM(TICKETLINES.UNITS * TICKETLINES.PRICE) " +
+                "SELECT COUNT(DISTINCT RECEIPTS.ID), "
+                        + "SUM(TICKETLINES.UNITS * TICKETLINES.PRICE) " +
                         "FROM RECEIPTS, TICKETLINES WHERE RECEIPTS.ID = TICKETLINES.TICKET AND RECEIPTS.MONEY = ?",
                 SerializerWriteString.INSTANCE,
                 new SerializerReadBasic(new Datas[] {Datas.INT, Datas.DOUBLE}))
@@ -238,7 +239,8 @@ public class PaymentsModel {
         } 
                 
         List<SalesLine> asales = new StaticSentence(app.getSession(),
-                "SELECT TAXCATEGORIES.NAME, SUM(TAXLINES.AMOUNT) " +
+                "SELECT TAXCATEGORIES.NAME, SUM(TAXLINES.AMOUNT),"
+                        + "SUM(TAXLINES.BASE) " +
                 "FROM RECEIPTS, TAXLINES, TAXES, TAXCATEGORIES WHERE RECEIPTS.ID = TAXLINES.RECEIPT AND TAXLINES.TAXID = TAXES.ID AND TAXES.CATEGORY = TAXCATEGORIES.ID " +
                 "AND RECEIPTS.MONEY = ?" +
                 "GROUP BY TAXCATEGORIES.NAME"
@@ -251,6 +253,9 @@ public class PaymentsModel {
         } else {
             p.m_lsales = asales;
         }
+        p.m_dSalesBase = 0d;
+        for(SalesLine sl : p.m_lsales)
+            p.m_dSalesBase += sl.m_SalesBase;
          
          // added by janar153 @ 29.12.2013
         // removed lines list
@@ -276,7 +281,9 @@ public class PaymentsModel {
         // by janar153 @ 01.12.2013
         // Product Sales
         Object[] valproductsales = (Object []) new StaticSentence(app.getSession()
-            , "SELECT COUNT(*), SUM(TICKETLINES.UNITS), SUM((TICKETLINES.PRICE + TICKETLINES.PRICE * TAXES.RATE ) * TICKETLINES.UNITS) " +
+            , "SELECT COUNT(*), "
+                    + "SUM(TICKETLINES.UNITS), "
+                    + "SUM(TICKETLINES.PRICE  * (1 +TAXES.RATE ) * TICKETLINES.UNITS) " +
               "FROM TICKETLINES, TICKETS, RECEIPTS, TAXES " +
               "WHERE TICKETLINES.TICKET = TICKETS.ID AND TICKETS.ID = RECEIPTS.ID AND TICKETLINES.TAXID = TAXES.ID AND TICKETLINES.PRODUCT IS NOT NULL AND RECEIPTS.MONEY = ? " +
               "GROUP BY RECEIPTS.MONEY"
@@ -477,9 +484,7 @@ public class PaymentsModel {
      * @return
      */
     public String printSalesTotal() {            
-        return Formats.CURRENCY.formatValue((m_dSalesBase == null || m_dSalesTaxes == null)
-                ? null
-                : m_dSalesBase + m_dSalesTaxes);
+        return Formats.CURRENCY.formatValue(m_dSalesBase+m_dSalesTaxes);
     }     
 
     /**
@@ -866,6 +871,7 @@ public class PaymentsModel {
         
         private String m_SalesTaxName;
         private Double m_SalesTaxes;
+        public Double m_SalesBase;
         
         /**
          *
@@ -876,6 +882,7 @@ public class PaymentsModel {
         public void readValues(DataRead dr) throws BasicException {
             m_SalesTaxName = dr.getString(1);
             m_SalesTaxes = dr.getDouble(2);
+            m_SalesBase = dr.getDouble(3);
         }
 
         /**
