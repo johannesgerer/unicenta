@@ -20,6 +20,7 @@
 package com.openbravo.pos.ticket;
 
 import com.openbravo.format.Formats;
+import com.openbravo.pos.util.RoundUtils;
 
 /**
  *
@@ -30,7 +31,7 @@ public class TicketTaxInfo {
     private TaxInfo tax;
     
     private double subtotal;
-    private double taxtotal;
+    private double total;
             
     /** Creates a new instance of TicketTaxInfo
      * @param tax */
@@ -38,7 +39,7 @@ public class TicketTaxInfo {
         this.tax = tax;
         
         subtotal = 0.0;
-        taxtotal = 0.0;
+        total = 0.0;
     }
     
     /**
@@ -55,7 +56,7 @@ public class TicketTaxInfo {
      */
     public void add(double dValue) {
         subtotal += dValue;
-        taxtotal = subtotal * tax.getRate();
+        total = subtotal * (1+tax.getRate());
     }
     
     /**
@@ -63,7 +64,7 @@ public class TicketTaxInfo {
      * @return
      */
     public double getSubTotal() {    
-        return subtotal;
+        return RoundUtils.round(subtotal);
     }
     
     /**
@@ -71,7 +72,7 @@ public class TicketTaxInfo {
      * @return
      */
     public double getTax() {       
-        return taxtotal;
+        return getTotal()-getSubTotal();
     }
     
     /**
@@ -79,7 +80,7 @@ public class TicketTaxInfo {
      * @return
      */
     public double getTotal() {         
-        return subtotal + taxtotal;
+        return RoundUtils.round(total);
     }
     
     /**
@@ -87,7 +88,7 @@ public class TicketTaxInfo {
      * @return
      */
     public String printSubTotal() {
-        return Formats.CURRENCY.formatValue(new Double(getSubTotal()));
+        return Formats.CURRENCY.formatValue(getSubTotal());
     }
 
     /**
@@ -95,7 +96,7 @@ public class TicketTaxInfo {
      * @return
      */
     public String printTax() {
-        return Formats.CURRENCY.formatValue(new Double(getTax()));
+        return Formats.CURRENCY.formatValue(getTax());
     }    
 
     /**

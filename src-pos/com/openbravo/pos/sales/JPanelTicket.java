@@ -974,6 +974,14 @@ public abstract class JPanelTicket extends JPanel implements JPanelView, BeanFac
             case "kassenabschluss":// close cash                
                 m_App.getAppUserView().showTask("com.openbravo.pos.panels.JPanelCloseMoney");
                 return;
+            case "shutdown":
+                {int res = JOptionPane.showConfirmDialog(this, 
+                        "Kasse herunterfahren?", AppLocal.getIntString("title.editor"), JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE);
+                if (res == JOptionPane.YES_OPTION) {
+                    deactivate();
+                    ((JRootApp) m_App).tryShutdown();
+                }}
+                return;
             case "logout":
                 {int res = JOptionPane.showConfirmDialog(this, AppLocal.getIntString("message.wannalogout"), AppLocal.getIntString("title.editor"), JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE);
                 if (res == JOptionPane.YES_OPTION) {

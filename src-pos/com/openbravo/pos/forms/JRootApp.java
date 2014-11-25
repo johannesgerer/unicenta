@@ -372,10 +372,16 @@ public class JRootApp extends JPanel implements AppView {
         }
     }
     
+    public void tryShutdown() { 
+        if(tryToClose()) 
+            System.exit(7);
+    }
+    
     /**
      *
+     * @return 
      */
-    public void tryToClose() {   
+    public boolean tryToClose() {   
         
         if (closeAppView()) {
 
@@ -388,7 +394,9 @@ public class JRootApp extends JPanel implements AppView {
 
             // Download Root form
             SwingUtilities.getWindowAncestor(this).dispose();
+            return true;
         }
+        return false;
     }
     
     // Interfaz de aplicacion
@@ -736,6 +744,8 @@ public class JRootApp extends JPanel implements AppView {
         showLogin();
     }
     
+    
+    
     /**
      *
      * @return
@@ -802,13 +812,23 @@ public class JRootApp extends JPanel implements AppView {
 
                 jCard.setText("");
                 return;
+            case "shutdown":
+                {int res = JOptionPane.showConfirmDialog(this, 
+                        "Kasse herunterfahren?", AppLocal.getIntString("title.editor"), JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE);
+                if (res == JOptionPane.YES_OPTION) {
+                    tryShutdown();
+                }}
+                return;
             case "logout":
                 int res = JOptionPane.showConfirmDialog(this, AppLocal.getIntString("message.wannalogout")
                         , AppLocal.getIntString("title.editor"), JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE);
                 if (res == JOptionPane.YES_OPTION){
-                    tryToClose();                
+                    tryToClose();
                     break;
                 }
+                return;
+            case "cancel":
+                jCard.setText("");
                 return;
             default:
                 jCard.setText(jCard.getText()+action);

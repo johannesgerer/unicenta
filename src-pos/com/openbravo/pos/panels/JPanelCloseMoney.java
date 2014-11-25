@@ -108,6 +108,8 @@ public class JPanelCloseMoney extends JPanel implements JPanelView, BeanFactoryA
 
         
         jPanelTop.setVisible(false);        
+        jPanel4.setVisible(false);
+        jPanel5.setVisible(false);
         if (m_App.getProperties().getProperty("screen.600800") != null) {           
         if (Boolean.valueOf(m_App.getProperties().getProperty("screen.600800")).booleanValue() == true) {             
                    jPanelTop.setVisible(true);
@@ -713,8 +715,8 @@ public class JPanelCloseMoney extends JPanel implements JPanelView, BeanFactoryA
         printPayments("Printer.CloseCash");
     }//GEN-LAST:event_m_jPrintCashTopActionPerformed
 
-    private void m_jCloseCashTopActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_m_jCloseCashTopActionPerformed
-        // TODO add your handling code here:
+    private void stupidIdiots() //see change log to see why
+    {
         int res = JOptionPane.showConfirmDialog(this, AppLocal.getIntString("message.wannaclosecash"), AppLocal.getIntString("message.title"), JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE);
         if (res == JOptionPane.YES_OPTION) {
 
@@ -763,61 +765,16 @@ public class JPanelCloseMoney extends JPanel implements JPanelView, BeanFactoryA
                 MessageInf msg = new MessageInf(MessageInf.SGN_NOTICE, AppLocal.getIntString("label.noticketstoclose"), e);
                 msg.show(this);
             }
+            m_App.getAppUserView().showTask("com.openbravo.pos.sales.JPanelTicketSales");
         }
-
+    }
+    
+    private void m_jCloseCashTopActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_m_jCloseCashTopActionPerformed
+        stupidIdiots();
     }//GEN-LAST:event_m_jCloseCashTopActionPerformed
 
     private void m_jCloseCashActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_m_jCloseCashActionPerformed
-        // TODO add your handling code here:
-        int res = JOptionPane.showConfirmDialog(this, AppLocal.getIntString("message.wannaclosecash"), AppLocal.getIntString("message.title"), JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE);
-        if (res == JOptionPane.YES_OPTION) {
-
-            Date dNow = new Date();
-
-            try {
-                // Cerramos la caja si esta pendiente de cerrar.
-                if (m_App.getActiveCashDateEnd() == null) {
-                    new StaticSentence(m_App.getSession()
-                        , "UPDATE CLOSEDCASH SET DATEEND = ?, NOSALES = ? WHERE HOST = ? AND MONEY = ?"
-                        , new SerializerWriteBasic(new Datas[] {Datas.TIMESTAMP, Datas.INT, Datas.STRING, Datas.STRING}))
-                    .exec(new Object[] {dNow, result, m_App.getProperties().getHost(), m_App.getActiveCashIndex()});
-                }
-            } catch (BasicException e) {
-                MessageInf msg = new MessageInf(MessageInf.SGN_NOTICE, AppLocal.getIntString("message.cannotclosecash"), e);
-                msg.show(this);
-            }
-
-            try {
-                // Creamos una nueva caja
-                m_App.setActiveCash(UUID.randomUUID().toString(), m_App.getActiveCashSequence() + 1, dNow, null);
-
-                // creamos la caja activa
-                m_dlSystem.execInsertCash(
-                    new Object[] {m_App.getActiveCashIndex(), m_App.getProperties().getHost(), m_App.getActiveCashSequence(), m_App.getActiveCashDateStart(), m_App.getActiveCashDateEnd(),0});
-
-                m_dlSystem.execDrawerOpened(
-                    new Object[] {m_App.getAppUserView().getUser().getName(),"Close Cash"});
-
-                // ponemos la fecha de fin
-                m_PaymentsToClose.setDateEnd(dNow);
-
-                // print report
-                printPayments("Printer.CloseCash");
-
-                // Mostramos el mensaje
-                JOptionPane.showMessageDialog(this, AppLocal.getIntString("message.closecashok"), AppLocal.getIntString("message.title"), JOptionPane.INFORMATION_MESSAGE);
-            } catch (BasicException e) {
-                MessageInf msg = new MessageInf(MessageInf.SGN_NOTICE, AppLocal.getIntString("message.cannotclosecash"), e);
-                msg.show(this);
-            }
-
-            try {
-                loadData();
-            } catch (BasicException e) {
-                MessageInf msg = new MessageInf(MessageInf.SGN_NOTICE, AppLocal.getIntString("label.noticketstoclose"), e);
-                msg.show(this);
-            }
-        }
+        stupidIdiots();
     }//GEN-LAST:event_m_jCloseCashActionPerformed
 
     private void m_jPrintCashActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_m_jPrintCashActionPerformed

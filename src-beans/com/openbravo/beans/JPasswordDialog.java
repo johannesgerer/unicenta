@@ -59,12 +59,13 @@ public class JPasswordDialog extends javax.swing.JDialog {
         getRootPane().setDefaultButton(jcmdOK);   
         
         m_jpassword.addEditorKeys(m_jKeys);
+//        jPanel3.remove(m_jKeys);
         m_jpassword.reset();
         m_jpassword.activate();
         
         m_jPanelTitle.setBorder(RoundedBorder.createGradientBorder());
 
-        m_sPassword = null;
+        m_sPassword = null;        
     }
     
     private void setTitle(String title, String message, Icon icon) {
@@ -214,8 +215,8 @@ public class JPasswordDialog extends javax.swing.JDialog {
 
         getContentPane().add(m_jPanelTitle, java.awt.BorderLayout.NORTH);
 
-        java.awt.Dimension screenSize = java.awt.Toolkit.getDefaultToolkit().getScreenSize();
-        setBounds((screenSize.width-258)/2, (screenSize.height-428)/2, 258, 428);
+        setSize(new java.awt.Dimension(258, 428));
+        setLocationRelativeTo(null);
     }// </editor-fold>//GEN-END:initComponents
 
     private void jNumberKeys21KeyPerformed(com.openbravo.beans.JNumberEvent evt) {//GEN-FIRST:event_jNumberKeys21KeyPerformed
@@ -245,6 +246,7 @@ public class JPasswordDialog extends javax.swing.JDialog {
     }//GEN-LAST:event_closeWindow
 
     private void m_jKeysActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_m_jKeysActionPerformed
+
     }//GEN-LAST:event_m_jKeysActionPerformed
        
     // Variables declaration - do not modify//GEN-BEGIN:variables
