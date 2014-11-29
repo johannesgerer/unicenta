@@ -67,6 +67,10 @@ public class TicketTaxInfo {
         return RoundUtils.round(subtotal);
     }
     
+    public double getSubTotalExact() {    
+        return subtotal;
+    }
+    
     /**
      *
      * @return

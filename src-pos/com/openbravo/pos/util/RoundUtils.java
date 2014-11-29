@@ -38,7 +38,7 @@ public class RoundUtils {
      */
     public static double round(double dValue) {
         double fractionMultiplier = Math.pow(10.0, Formats.getCurrencyDecimals());
-        return Math.rint(dValue * fractionMultiplier) / fractionMultiplier;
+        return Math.signum(dValue)*Math.round(Math.abs(dValue * fractionMultiplier)) / fractionMultiplier;
     }
     
     /**

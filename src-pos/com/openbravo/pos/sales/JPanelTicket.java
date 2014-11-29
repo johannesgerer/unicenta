@@ -810,12 +810,13 @@ public abstract class JPanelTicket extends JPanel implements JPanelView, BeanFac
 
         TicketLineInfo newline = new TicketLineInfo(m_oTicket.getLine(i));
 
-        newline.setMultiply(Integer.parseInt(jAmount.getText()));
+        Double quantity=Double.parseDouble(jAmount.getText());
+        newline.setMultiply(quantity);
         jAmount.setText("1");
 
         Double price = newline.getPriceTax();
         if (current.length() > 0) {
-            price = Double.parseDouble(current) / 100;
+            price = RoundUtils.round(Double.parseDouble(current)*quantity/100) / quantity;
         }
 
         newline.overwritePriceTax(price);
@@ -960,6 +961,9 @@ public abstract class JPanelTicket extends JPanel implements JPanelView, BeanFac
         }
 
         switch (action) {
+            case "komma":
+                m_jPrice.setText(current + ".");
+                return;
             case "down":
                 m_jDown.doClick();
                 return;
@@ -1066,14 +1070,14 @@ public abstract class JPanelTicket extends JPanel implements JPanelView, BeanFac
                 }
                 setLineState("");
                 return;
-            case "amount": //intepret as amount
+            case "quantity": //intepret as quantity
                 if (current.length() == 0) {
                     return;
                 }
                 jAmount.setText(current);
                 m_jPrice.setText("");
                 return;
-            case "enter": //register price and amount
+            case "enter": //register price and qu
                 m_jPrice.setText("");
                 setLineState(current);
                 return;

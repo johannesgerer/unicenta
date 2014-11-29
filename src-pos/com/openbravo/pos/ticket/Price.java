@@ -5,11 +5,18 @@
  */
 package com.openbravo.pos.ticket;
 
+import com.openbravo.basic.BasicException;
+import com.openbravo.data.loader.DataRead;
+import com.openbravo.data.loader.DataWrite;
+import com.openbravo.data.loader.SerializableRead;
+import com.openbravo.data.loader.SerializableWrite;
+import java.io.Serializable;
+
 /**
  *
  * @author johannes
  */
-public class Price {
+public class Price implements SerializableWrite, SerializableRead, Serializable{
     private double price;
     public double discount;
 
@@ -24,6 +31,16 @@ public class Price {
 
     public void setPrice(double Price) {
         this.price = Price;
+    }
+
+    @Override
+    public void writeValues(DataWrite dp) throws BasicException {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
+    public void readValues(DataRead dr) throws BasicException {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
     
