@@ -76,7 +76,7 @@ public class TicketTaxInfo {
      * @return
      */
     public double getTax() {       
-        return getTotal()-getSubTotal();
+        return RoundUtils.round(getTotal()-getSubTotal());
     }
     
     /**

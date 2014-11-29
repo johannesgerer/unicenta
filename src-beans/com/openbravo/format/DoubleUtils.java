@@ -17,6 +17,7 @@ public class DoubleUtils {
      * @return
      */
     public static double fixDecimals(Number value) {
-        return Math.rint((value).doubleValue() * 1000000.0) / 1000000.0;
+        double idiots = Math.rint((value).doubleValue() * 1000000.0) / 1000000.0;
+        return idiots;
     }
 }

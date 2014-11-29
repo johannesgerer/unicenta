@@ -22,6 +22,7 @@ package com.openbravo.format;
 import java.text.*;
 import java.util.Date;
 import com.openbravo.basic.BasicException;
+import com.openbravo.pos.util.RoundUtils;
 
 /**
  *
@@ -339,7 +340,8 @@ public abstract class Formats {
     private static final class FormatsCURRENCY extends Formats {       
         @Override
         protected String formatValueInt(Object value) {
-            return m_currencyformat.format(DoubleUtils.fixDecimals((Number) value)); // quickfix for 3838
+            return m_currencyformat.format(RoundUtils.round(
+                    (double) ((Number)value).doubleValue())); // quickfix for 3838
         }   
         @Override
         protected Object parseValueInt(String value) throws ParseException {

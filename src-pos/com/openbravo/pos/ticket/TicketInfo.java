@@ -359,9 +359,7 @@ public class TicketInfo implements SerializableRead, Externalizable {
      * @return
      */
     public String getTransactionID(){
-        return (getPayments().size()>0)
-            ? ( getPayments().get(getPayments().size()-1) ).getTransactionID()
-            : StringUtils.getCardNumber(); //random transaction ID
+        return null;
     }
     
     /**
@@ -541,7 +539,11 @@ public class TicketInfo implements SerializableRead, Externalizable {
      * @return
      */
     public double getTotal() {
-        return getSubTotal() + getTax();
+        double sum = 0.0;
+        for (TicketLineInfo line : m_aLines) {
+            sum += line.getValue();
+        }
+        return sum;
     }
     
     /**

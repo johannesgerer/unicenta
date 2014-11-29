@@ -35,7 +35,6 @@ public class PaymentInfoTicket extends PaymentInfo implements SerializableRead  
     private String m_sName;
     private String m_transactionID;
     private double m_dTendered;
-    private double m_change;
     private String m_dCardName =null;    
     
     /** Creates a new instance of PaymentInfoCash
@@ -46,17 +45,6 @@ public class PaymentInfoTicket extends PaymentInfo implements SerializableRead  
         m_dTicket = dTicket;
     }
     
-    /**
-     *
-     * @param dTicket
-     * @param sName
-     * @param transactionID
-     */
-    public PaymentInfoTicket(double dTicket, String sName, String transactionID) {
-        m_sName = sName;
-        m_dTicket = dTicket;
-        m_transactionID = transactionID;
-    }
     
     /**
      *
