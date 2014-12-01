@@ -1004,6 +1004,9 @@ public abstract class JPanelTicket extends JPanel implements JPanelView, BeanFac
                     Toolkit.getDefaultToolkit().beep();
                 }
                 return;
+            case "discountAbsolute": 
+                System.out.println("discount OK ABs");
+                return;//TODO
             case "discountSingleLine": //discount on total
             case "discount": //discount on total
                 int first, last;
