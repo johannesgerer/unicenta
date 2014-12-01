@@ -110,6 +110,7 @@ public class JPanelCloseMoney extends JPanel implements JPanelView, BeanFactoryA
         jPanelTop.setVisible(false);        
         jPanel4.setVisible(false);
         jPanel5.setVisible(false);
+        m_jPrintCash.setVisible(false);
         if (m_App.getProperties().getProperty("screen.600800") != null) {           
         if (Boolean.valueOf(m_App.getProperties().getProperty("screen.600800")).booleanValue() == true) {             
                    jPanelTop.setVisible(true);
@@ -118,7 +119,7 @@ public class JPanelCloseMoney extends JPanel implements JPanelView, BeanFactoryA
                    jPanelTop.setVisible(false);
                    jPanelBottom.setVisible(true);
         }        
-
+        
     }
     }
     
