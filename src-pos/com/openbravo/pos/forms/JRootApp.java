@@ -793,7 +793,7 @@ public class JRootApp extends JPanel implements AppView {
     
     private void stateTransition(String action) {        
         switch(action){
-            case "enter":
+            case "zws":
                 if("".equals(jCard.getText()))
                         return;
                 AppUser user = null;
