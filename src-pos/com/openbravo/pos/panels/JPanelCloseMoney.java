@@ -110,7 +110,7 @@ public class JPanelCloseMoney extends JPanel implements JPanelView, BeanFactoryA
         jPanelTop.setVisible(false);        
         jPanel4.setVisible(false);
         jPanel5.setVisible(false);
-        m_jPrintCash.setVisible(false);
+        //m_jPrintCash.setVisible(false);
         if (m_App.getProperties().getProperty("screen.600800") != null) {           
         if (Boolean.valueOf(m_App.getProperties().getProperty("screen.600800")).booleanValue() == true) {             
                    jPanelTop.setVisible(true);
@@ -754,7 +754,7 @@ public class JPanelCloseMoney extends JPanel implements JPanelView, BeanFactoryA
                 printPayments("Printer.CloseCash");
 
                 // Mostramos el mensaje
-                JOptionPane.showMessageDialog(this, AppLocal.getIntString("message.closecashok"), AppLocal.getIntString("message.title"), JOptionPane.INFORMATION_MESSAGE);
+                //JOptionPane.showMessageDialog(this, AppLocal.getIntString("message.closecashok"), AppLocal.getIntString("message.title"), JOptionPane.INFORMATION_MESSAGE);
             } catch (BasicException e) {
                 MessageInf msg = new MessageInf(MessageInf.SGN_NOTICE, AppLocal.getIntString("message.cannotclosecash"), e);
                 msg.show(this);

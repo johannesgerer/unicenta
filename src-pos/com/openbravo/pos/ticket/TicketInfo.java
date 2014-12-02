@@ -80,7 +80,7 @@ public class TicketInfo implements SerializableRead, Externalizable {
     private String loyaltyCardNumber;
     private Boolean oldTicket;
     private Boolean alreadyPrinted;
-
+    public Boolean ticketCanceled = false;
     
     /** Creates new TicketModel */
     public TicketInfo() {
@@ -644,14 +644,16 @@ public class TicketInfo implements SerializableRead, Externalizable {
      * @return
      */
     public TicketTaxInfo getTaxLine(TaxInfo tax) {
-
-        for (TicketTaxInfo taxline : taxes) {
-            if (tax.getId().equals(taxline.getTaxInfo().getId())) {
-                return taxline;
+        if(null !=taxes){
+            for (TicketTaxInfo taxline : taxes) {
+                if (tax.getId().equals(taxline.getTaxInfo().getId())) {
+                    return taxline;
+                }
             }
+        
+            return new TicketTaxInfo(tax);
         }
-
-        return new TicketTaxInfo(tax);
+         return null;   
     }
 
     /**
@@ -840,5 +842,9 @@ public class TicketInfo implements SerializableRead, Externalizable {
     public void setOldTicket(Boolean otState) {
 	oldTicket = otState;
 }
+
+    public Boolean getTicketCanceled() {
+        return ticketCanceled;
+    }
     
 }

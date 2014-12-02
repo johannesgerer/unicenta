@@ -24,6 +24,7 @@ import com.openbravo.data.loader.*;
 import com.openbravo.format.Formats;
 import com.openbravo.pos.forms.AppLocal;
 import com.openbravo.pos.forms.AppView;
+import com.openbravo.pos.ticket.TicketInfo;
 import com.openbravo.pos.util.StringUtils;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -65,6 +66,8 @@ public class PaymentsModel {
     // added by janar153 @ 29.12.2013
     private java.util.List<RemovedProductLines> m_lremovedlines;
     // end
+    
+    private java.util.List<TicketInfo> nosales;
     
     private final static String[] PAYMENTHEADERS = {"Label.Payment", "label.totalcash"};
     
@@ -140,7 +143,9 @@ public class PaymentsModel {
         Object[] valcategorysales = (Object []) new StaticSentence(app.getSession()
             , "SELECT COUNT(*), SUM(TICKETLINES.UNITS), SUM((TICKETLINES.PRICE + TICKETLINES.PRICE * TAXES.RATE ) * TICKETLINES.UNITS) " +
               "FROM TICKETLINES, TICKETS, RECEIPTS, TAXES " +
-              "WHERE TICKETLINES.TICKET = TICKETS.ID AND TICKETS.ID = RECEIPTS.ID AND TICKETLINES.TAXID = TAXES.ID AND TICKETLINES.PRODUCT IS NOT NULL AND RECEIPTS.MONEY = ? " +
+              "WHERE TICKETLINES.TICKET = TICKETS.ID AND TICKETS.ID = RECEIPTS.ID AND"
+                    + " TICKETLINES.TAXID = TAXES.ID AND TICKETLINES.PRODUCT IS NOT NULL "
+                    + "AND RECEIPTS.MONEY = ? AND TICKETS.TICKETTYPE=3 " +
               "GROUP BY RECEIPTS.MONEY"
             , SerializerWriteString.INSTANCE
             , new SerializerReadBasic(new Datas[] {Datas.INT, Datas.DOUBLE, Datas.DOUBLE}))
@@ -278,6 +283,30 @@ public class PaymentsModel {
         }
         // end
                 
+        p.nosales = new StaticSentence(app.getSession()
+                , "SELECT "
+                + "T.ID, "
+                + "T.TICKETTYPE, "
+                + "T.TICKETID, "
+                + "R.DATENEW, "
+                + "R.MONEY, "
+                + "R.ATTRIBUTES, "
+                + "P.ID, "
+                + "P.NAME, "
+                + "T.CUSTOMER "
+                + "FROM RECEIPTS R "
+                + "JOIN TICKETS T ON R.ID = T.ID "
+                + "LEFT OUTER JOIN PEOPLE P ON T.PERSON = P.ID "
+                + "WHERE R.MONEY = ? AND T.TICKETTYPE=3 "
+                + "ORDER BY R.DATENEW ASC"
+            , SerializerWriteString.INSTANCE
+            , new SerializerReadClass(TicketInfo.class))
+            .list(app.getActiveCashIndex());
+        
+        if(p.nosales == null)
+            p.nosales = new ArrayList();
+        
+        
         // by janar153 @ 01.12.2013
         // Product Sales
         Object[] valproductsales = (Object []) new StaticSentence(app.getSession()
@@ -285,7 +314,9 @@ public class PaymentsModel {
                     + "SUM(TICKETLINES.UNITS), "
                     + "SUM(TICKETLINES.PRICE  * (1 +TAXES.RATE ) * TICKETLINES.UNITS) " +
               "FROM TICKETLINES, TICKETS, RECEIPTS, TAXES " +
-              "WHERE TICKETLINES.TICKET = TICKETS.ID AND TICKETS.ID = RECEIPTS.ID AND TICKETLINES.TAXID = TAXES.ID AND TICKETLINES.PRODUCT IS NOT NULL AND RECEIPTS.MONEY = ? " +
+              "WHERE TICKETLINES.TICKET = TICKETS.ID AND TICKETS.ID = RECEIPTS.ID AND "
+                    + "TICKETLINES.TAXID = TAXES.ID AND TICKETLINES.PRODUCT IS NOT NULL "
+                    + "AND RECEIPTS.MONEY = ? AND TICKETS.TICKETTYPE=3 " +
               "GROUP BY RECEIPTS.MONEY"
             , SerializerWriteString.INSTANCE
             , new SerializerReadBasic(new Datas[] {Datas.INT, Datas.DOUBLE, Datas.DOUBLE}))
@@ -309,7 +340,8 @@ public class PaymentsModel {
                     + "SUM(TICKETLINES.DISCOUNT * ( 1+ TAXES.RATE ) * TICKETLINES.UNITS) " +
               "FROM TICKETLINES, TICKETS, RECEIPTS, PRODUCTS, TAXES " +
               "WHERE TICKETLINES.PRODUCT = PRODUCTS.ID AND TICKETLINES.TICKET = TICKETS.ID "
-                + "AND TICKETS.ID = RECEIPTS.ID AND TICKETLINES.TAXID = TAXES.ID AND RECEIPTS.MONEY = ? " +
+                + "AND TICKETS.ID = RECEIPTS.ID AND TICKETLINES.TAXID = TAXES.ID "
+                    + "AND RECEIPTS.MONEY = ? AND TICKETS.TICKETTYPE=3 " +
               "GROUP BY PRODUCTS.ID order by CAST(PRODUCTS.CODE as Int)"
             , SerializerWriteString.INSTANCE
             , new SerializerReadClass(PaymentsModel.ProductSalesLine.class)) //new SerializerReadBasic(new Datas[] {Datas.STRING, Datas.DOUBLE}))
@@ -652,6 +684,10 @@ public class PaymentsModel {
                 }
             }  
         };
+    }
+
+    public java.util.List<TicketInfo> getNosales() {
+        return nosales;
     }
     
 // JG 9 Nov 12

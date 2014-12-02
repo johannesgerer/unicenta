@@ -154,19 +154,16 @@
         
         <line></line>
         <line>
-            <text bold="true" align ="left" length="21">Entfernte Posten</text>
-            <text bold="true" align ="right" length="21">Produkanzahl</text>
+            <text bold="true" align ="left" length="21">Bon Abbrüche</text>
         </line>
         <line>
             <text>------------------------------------------</text>
         </line>
-        #foreach ($line in $payments.getRemovedProductLines())
-		<line>
-            <text align ="left">${line.printWorkerName()}</text>
-        </line>
+        #foreach ($line in $payments.getNosales())
         <line>
-            <text align ="left" length="32">${line.printProductName()}</text>
-            <text align ="right" length="10">${line.printTotalUnits()}</text>
+            <text align ="left" length="12">${line.printUser()}</text>
+            <text align ="left" length="21">  ${line.printDate()}</text>
+            <text align ="right" length="9">${line.printId()}</text>
         </line>
         #end
         <line>

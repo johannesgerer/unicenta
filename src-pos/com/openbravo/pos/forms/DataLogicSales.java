@@ -1101,7 +1101,7 @@ public Object transact() throws BasicException {
                 ticket.setTicketId(getNextTicketPaymentIndex());
                 break;
             case TicketInfo.RECEIPT_NOSALE:
-                ticket.setTicketId(getNextTicketPaymentIndex());
+                ticket.setTicketId(getNextTicketNosaleIndex());
                 break;                
             default:
                 throw new BasicException();
@@ -1356,6 +1356,10 @@ public Object transact() throws BasicException {
         return (Integer) s.DB.getSequenceSentence(s, "TICKETSNUM_PAYMENT").find();
     }
 
+    
+    public final Integer getNextTicketNosaleIndex() throws BasicException {
+        return (Integer) s.DB.getSequenceSentence(s, "TICKETSNUM_NOSALE").find();
+    }
 // ADDED JG 20.12.10 ISKITCHEN - Kitchen Print + 25.06.2011 ISSERVICE - ISSERVICE
 // ADDED JG 13 NOV 12 DISPLAY - Button display text for HTML rendering***
 // ADDED JDL 19.12.12 - Varible Price Product

@@ -1041,24 +1041,44 @@ public abstract class JPanelTicket extends JPanel implements JPanelView, BeanFac
                 jAmount.setText("1");
                 return;
             case "deleteAllLines":
-                int res = JOptionPane.showConfirmDialog(this, "Bon stornieren?", 
+                int res = JOptionPane.showConfirmDialog(this, "Bon abbrechen?",
                         AppLocal.getIntString("title.editor"), JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE);
                 if (res == JOptionPane.YES_OPTION) {
                     m_jPrice.setText("");
                     jAmount.setText("1");
-                    for (int j = 0; j < m_ticketlines.getRowCount();)
-                        removeTicketLine(j);
-                    ((JRootApp)m_App).printerStart();
+                    m_oTicket.setTicketType(TicketInfo.RECEIPT_NOSALE);
+                    m_oTicket.setDate(new Date()); // Le pongo la fecha de cobro
+                    try {
+                        taxeslogic.calculateTaxes(m_oTicket);
+                        dlSales.saveTicket(m_oTicket, m_App.getInventoryLocation());
+                    } catch (TaxesException ex) {
+                        Logger.getLogger(JPanelTicket.class.getName()).log(Level.SEVERE, null, ex);
+                    } catch (BasicException eData) {
+                        MessageInf msg = new MessageInf(MessageInf.SGN_NOTICE, AppLocal.getIntString("message.nosaveticket"), eData);
+                        msg.show(this);
+                    }
+                    printTicket("Printer.Ticket");
+                    m_oTicket.ticketCanceled = false;
+                    m_oTicket.setTicketType(TicketInfo.RECEIPT_NORMAL);
+                    
+                    m_oTicket.resetTaxes();
+                    m_oTicket.resetPayments();
+                    
+                    m_ticketsbag.deleteTicket();
+            
+                    ((JRootApp) m_App).printerStart();
                 }
-                
+                return;
             case "open": // open drawer
-                printTicket("Printer.OpenDrawer");
+                printTicket("Printer.OpenDrawer", m_oTicket, m_oTicketExt);
                 return;
             case "deleteLine":
                 m_jDelete.doClick();
                 return;
-            case "neverever": //cancel sale 
-                return; //deactivate for security reasons. instead delete single 
+            
+                
+        //cancel sale 
+        //deactivated for security reasons. instead delete single 
             // lines which will be visible in kassenbericht
             case "new": //new sale
                 ((JTicketsBagShared) m_ticketsbag).processAction(action);
@@ -1081,12 +1101,21 @@ public abstract class JPanelTicket extends JPanel implements JPanelView, BeanFac
                 m_jPrice.setText("");
                 return;
             case "enter": //register price and qu
+                if (!stateWaitingForPrice) return;
                 m_jPrice.setText("");
                 setLineState(current);
                 return;
         }
     }
 
+       /**
+     *
+     * @param resource
+     */
+    public void printTicket(String resource) {
+        printTicket(resource, m_oTicket, m_oTicketExt);
+    }
+    
     private void oldStateTransition(char cTrans) {
         if ((cTrans == '\n') || (cTrans == '?')) {
             // Codigo de barras introducido
@@ -1498,6 +1527,8 @@ public abstract class JPanelTicket extends JPanel implements JPanelView, BeanFac
     }
 
     private boolean closeTicket(TicketInfo ticket, Object ticketext) {
+        if(ticket.getTicketType() == TicketInfo.RECEIPT_NOSALE)
+            return false; 
         if (listener != null) {
             listener.stop();
         }
@@ -1518,7 +1549,7 @@ public abstract class JPanelTicket extends JPanel implements JPanelView, BeanFac
                     if (listener != null) {
                         listener.stop();
                     }
-                    // Muestro el total
+                    // customer display
                     printTicket("Printer.TicketTotal", ticket, ticketext);
 
                     // Select the Payments information
@@ -1754,13 +1785,6 @@ public abstract class JPanelTicket extends JPanel implements JPanelView, BeanFac
         }
     }
 
-    /**
-     *
-     * @param resource
-     */
-    public void printTicket(String resource) {
-        printTicket(resource, m_oTicket, m_oTicketExt);
-    }
 
     private Object executeEventAndRefresh(String eventkey, ScriptArg... args) {
 

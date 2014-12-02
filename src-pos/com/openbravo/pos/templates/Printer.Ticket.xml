@@ -21,7 +21,16 @@
  -->
 
 <output>
-
+#if (${ticket.ticketType} == 3)
+    <display>
+                                <line><text align ="left" length="15">BON ABBRUCH</text>
+                </line>
+                <line><text align ="left" length="10">Zurück:</text>
+                      <text align ="right" length="10"></text>
+                </line>
+                
+</display>
+#else
 	#foreach ($paymentline in $ticket.payments)
 	#if ($paymentline.name == "cash" && $paymentline.getChange() > 0 )
 <display>
@@ -35,9 +44,18 @@
 </display>
         #end	
         #end
+    #end   
+     
 
 <ticket>
-	<image>Printer.Ticket.Logo</image>
+	#if (${ticket.ticketType} == 3)
+        <line></line>
+        <line></line>
+        <line size="1"><text align="center" length="42" bold="true">BON ABBRUCH</text>
+        </line>
+        #else
+        <image>Printer.Ticket.Logo</image>
+        #end
 	
         <line></line>
 	<line><text align="center" length="42">InnKaufhaus GmbH</text></line>
@@ -49,10 +67,13 @@
         #end
         
 	#if (${ticket.ticketType} == 0)
-            #set( $type = "Beleg" )
+            #set( $type = "Bon Nr." )
 	#end
         #if (${ticket.ticketType} == 1)
             #set( $type = "Retoure" )
+        #end
+        #if (${ticket.ticketType} == 3)
+            #set( $type = "Abbruch Nr." )
         #end
             <line><text align="left" length="21">${type} ${ticket.printId()}</text>
                   <text align="right" length="21">${ticket.printDate()}</text></line>
@@ -94,7 +115,7 @@
 	<line size="1"><text align ="left" length="16" bold="true">Total</text>
         <text align ="right" length="26" bold="true">${ticket.printTotal()}</text>
         </line>
-
+#if (${ticket.ticketType} != 3)
 #foreach ($paymentline in $ticket.payments)
 
 	#if ($paymentline.name == "cash" )
@@ -142,8 +163,9 @@
 	<line><text align="center" length="42">Auf Wiedersehen im InnKaufhaus</text></line>
         <line><text align="center" length="42">Mo - Fr 09.00 bis 19:00 Uhr</text></line>
         <line><text align="center" length="42">Sa      09.00 bis 16:00 Uhr</text></line>
+#end
 </ticket>
-
+#if (${ticket.ticketType} != 3)
 #foreach ($paymentline in $ticket.payments)
 	#if ($paymentline.name == "cash")
 		<opendrawer/>
@@ -152,5 +174,5 @@
 		<opendrawer/>
 	#end
 #end
-
+#end
 </output>
