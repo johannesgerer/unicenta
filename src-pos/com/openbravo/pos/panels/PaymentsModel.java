@@ -67,7 +67,7 @@ public class PaymentsModel {
     private java.util.List<RemovedProductLines> m_lremovedlines;
     // end
     
-    private java.util.List<TicketInfo> nosales;
+    private java.util.List nosales;
     
     private final static String[] PAYMENTHEADERS = {"Label.Payment", "label.totalcash"};
     
@@ -145,7 +145,7 @@ public class PaymentsModel {
               "FROM TICKETLINES, TICKETS, RECEIPTS, TAXES " +
               "WHERE TICKETLINES.TICKET = TICKETS.ID AND TICKETS.ID = RECEIPTS.ID AND"
                     + " TICKETLINES.TAXID = TAXES.ID AND TICKETLINES.PRODUCT IS NOT NULL "
-                    + "AND RECEIPTS.MONEY = ? AND TICKETS.TICKETTYPE=3 " +
+                    + "AND RECEIPTS.MONEY = ? AND TICKETS.TICKETTYPE!=3 " +
               "GROUP BY RECEIPTS.MONEY"
             , SerializerWriteString.INSTANCE
             , new SerializerReadBasic(new Datas[] {Datas.INT, Datas.DOUBLE, Datas.DOUBLE}))
@@ -161,24 +161,24 @@ public class PaymentsModel {
             p.m_dCategorySalesTotal= (Double) valcategorysales[2];
         }
 
-        List categorys = new StaticSentence(app.getSession()
-            , "SELECT a.NAME, sum(c.UNITS), sum(c.UNITS * (c.PRICE + (c.PRICE * d.RATE))) " +
-              "FROM CATEGORIES as a " +
-              "LEFT JOIN PRODUCTS as b on a.id = b.CATEGORY " +
-              "LEFT JOIN TICKETLINES as c on b.id = c.PRODUCT " +
-              "LEFT JOIN TAXES as d on c.TAXID = d.ID " +
-              "LEFT JOIN RECEIPTS as e on c.TICKET = e.ID " +
-              "WHERE e.MONEY = ? " +
-              "GROUP BY a.NAME"
-            , SerializerWriteString.INSTANCE
-            , new SerializerReadClass(PaymentsModel.CategorySalesLine.class)) //new SerializerReadBasic(new Datas[] {Datas.STRING, Datas.DOUBLE}))
-            .list(app.getActiveCashIndex());
-
-        if (categorys == null) {
+//        List categorys = new StaticSentence(app.getSession()
+//            , "SELECT a.NAME, sum(c.UNITS), sum(c.UNITS * (c.PRICE + (c.PRICE * d.RATE))) " +
+//              "FROM CATEGORIES as a " +
+//              "LEFT JOIN PRODUCTS as b on a.id = b.CATEGORY " +
+//              "LEFT JOIN TICKETLINES as c on b.id = c.PRODUCT " +
+//              "LEFT JOIN TAXES as d on c.TAXID = d.ID " +
+//              "LEFT JOIN RECEIPTS as e on c.TICKET = e.ID " +
+//              "WHERE e.MONEY = ? AND TICKETS.TICKETTYPE!=3 " +
+//              "GROUP BY a.NAME"
+//            , SerializerWriteString.INSTANCE
+//            , new SerializerReadClass(PaymentsModel.CategorySalesLine.class)) //new SerializerReadBasic(new Datas[] {Datas.STRING, Datas.DOUBLE}))
+//            .list(app.getActiveCashIndex());
+//
+//        if (categorys == null) {
             p.m_lcategorysales = new ArrayList();
-        } else {
-            p.m_lcategorysales = categorys;
-        }        
+//        } else {
+//            p.m_lcategorysales = categorys;
+//        }        
 // end
         
         // Pagos
@@ -218,7 +218,11 @@ public class PaymentsModel {
         Object[] recsales = (Object []) new StaticSentence(app.getSession(),
                 "SELECT COUNT(DISTINCT RECEIPTS.ID), "
                         + "SUM(TICKETLINES.UNITS * TICKETLINES.PRICE) " +
-                        "FROM RECEIPTS, TICKETLINES WHERE RECEIPTS.ID = TICKETLINES.TICKET AND RECEIPTS.MONEY = ?",
+                        "FROM RECEIPTS, TICKETLINES, TICKETS WHERE "
+                        + "RECEIPTS.ID = TICKETLINES.TICKET "
+                        + "AND RECEIPTS.MONEY = ?"
+                        + " AND TICKETS.ID = RECEIPTS.ID "
+                        + "AND TICKETS.TICKETTYPE!=3 ",
                 SerializerWriteString.INSTANCE,
                 new SerializerReadBasic(new Datas[] {Datas.INT, Datas.DOUBLE}))
                 .find(app.getActiveCashIndex());
@@ -233,7 +237,10 @@ public class PaymentsModel {
         // Taxes
         Object[] rectaxes = (Object []) new StaticSentence(app.getSession(),
             "SELECT SUM(TAXLINES.AMOUNT) " +
-            "FROM RECEIPTS, TAXLINES WHERE RECEIPTS.ID = TAXLINES.RECEIPT AND RECEIPTS.MONEY = ?"
+            "FROM RECEIPTS, TAXLINES, TICKETS"
+            + " WHERE RECEIPTS.ID = TAXLINES.RECEIPT "
+            + " AND TICKETS.ID = RECEIPTS.ID "
+            + "AND RECEIPTS.MONEY = ? AND TICKETS.TICKETTYPE!=3"
             , SerializerWriteString.INSTANCE
             , new SerializerReadBasic(new Datas[] {Datas.DOUBLE}))
             .find(app.getActiveCashIndex());            
@@ -246,8 +253,11 @@ public class PaymentsModel {
         List<SalesLine> asales = new StaticSentence(app.getSession(),
                 "SELECT TAXCATEGORIES.NAME, SUM(TAXLINES.AMOUNT),"
                         + "SUM(TAXLINES.BASE) " +
-                "FROM RECEIPTS, TAXLINES, TAXES, TAXCATEGORIES WHERE RECEIPTS.ID = TAXLINES.RECEIPT AND TAXLINES.TAXID = TAXES.ID AND TAXES.CATEGORY = TAXCATEGORIES.ID " +
-                "AND RECEIPTS.MONEY = ?" +
+                "FROM RECEIPTS, TAXLINES, TAXES, TAXCATEGORIES, TICKETS " +
+                "WHERE RECEIPTS.ID = TAXLINES.RECEIPT AND "
+                + "TAXLINES.TAXID = TAXES.ID AND TAXES.CATEGORY = TAXCATEGORIES.ID "
+                + " AND TICKETS.ID = RECEIPTS.ID " +
+                "AND RECEIPTS.MONEY = ? AND TICKETS.TICKETTYPE!=3 " +
                 "GROUP BY TAXCATEGORIES.NAME"
                 , SerializerWriteString.INSTANCE
                 , new SerializerReadClass(PaymentsModel.SalesLine.class))
@@ -285,27 +295,34 @@ public class PaymentsModel {
                 
         p.nosales = new StaticSentence(app.getSession()
                 , "SELECT "
-                + "T.ID, "
-                + "T.TICKETTYPE, "
                 + "T.TICKETID, "
                 + "R.DATENEW, "
-                + "R.MONEY, "
-                + "R.ATTRIBUTES, "
-                + "P.ID, "
                 + "P.NAME, "
-                + "T.CUSTOMER "
+                + "SUM(TL.PRICE  * (1 +TX.RATE ) * TL.UNITS) "
                 + "FROM RECEIPTS R "
                 + "JOIN TICKETS T ON R.ID = T.ID "
                 + "LEFT OUTER JOIN PEOPLE P ON T.PERSON = P.ID "
+                + "LEFT OUTER JOIN TICKETLINES TL ON TL.TICKET = T.ID "
+                + "LEFT OUTER JOIN TAXES TX ON TL.TAXID = TX.ID " 
                 + "WHERE R.MONEY = ? AND T.TICKETTYPE=3 "
+                + "GROUP BY T.ID "
                 + "ORDER BY R.DATENEW ASC"
             , SerializerWriteString.INSTANCE
-            , new SerializerReadClass(TicketInfo.class))
+            //, new SerializerReadClass(TicketInfo.class))
+            , new SerializerReadBasic(new Datas[] {Datas.INT, Datas.TIMESTAMP
+                    , Datas.STRING, Datas.DOUBLE}))
             .list(app.getActiveCashIndex());
+        
         
         if(p.nosales == null)
             p.nosales = new ArrayList();
-        
+        for(Object s :  p.nosales)
+        {
+            Object[] b = (Object[]) s;
+            b[3]=Formats.CURRENCY.formatValue(b[3]);
+            b[1]=Formats.TIMESTAMP.formatValue(b[1]);
+        }
+            
         
         // by janar153 @ 01.12.2013
         // Product Sales
@@ -316,7 +333,7 @@ public class PaymentsModel {
               "FROM TICKETLINES, TICKETS, RECEIPTS, TAXES " +
               "WHERE TICKETLINES.TICKET = TICKETS.ID AND TICKETS.ID = RECEIPTS.ID AND "
                     + "TICKETLINES.TAXID = TAXES.ID AND TICKETLINES.PRODUCT IS NOT NULL "
-                    + "AND RECEIPTS.MONEY = ? AND TICKETS.TICKETTYPE=3 " +
+                    + "AND RECEIPTS.MONEY = ? AND TICKETS.TICKETTYPE!=3 " +
               "GROUP BY RECEIPTS.MONEY"
             , SerializerWriteString.INSTANCE
             , new SerializerReadBasic(new Datas[] {Datas.INT, Datas.DOUBLE, Datas.DOUBLE}))
@@ -337,11 +354,11 @@ public class PaymentsModel {
                     + "PRODUCTS.CODE, "
                     + "SUM(TICKETLINES.UNITS), "
                     + "SUM(TICKETLINES.PRICE * ( 1+ TAXES.RATE ) * TICKETLINES.UNITS), "
-                    + "SUM(TICKETLINES.DISCOUNT * ( 1+ TAXES.RATE ) * TICKETLINES.UNITS) " +
+                    + "SUM(TICKETLINES.DISCOUNT * ( 1+ TAXES.RATE )) " +
               "FROM TICKETLINES, TICKETS, RECEIPTS, PRODUCTS, TAXES " +
               "WHERE TICKETLINES.PRODUCT = PRODUCTS.ID AND TICKETLINES.TICKET = TICKETS.ID "
                 + "AND TICKETS.ID = RECEIPTS.ID AND TICKETLINES.TAXID = TAXES.ID "
-                    + "AND RECEIPTS.MONEY = ? AND TICKETS.TICKETTYPE=3 " +
+                    + "AND RECEIPTS.MONEY = ? AND TICKETS.TICKETTYPE!=3 " +
               "GROUP BY PRODUCTS.ID order by CAST(PRODUCTS.CODE as Int)"
             , SerializerWriteString.INSTANCE
             , new SerializerReadClass(PaymentsModel.ProductSalesLine.class)) //new SerializerReadBasic(new Datas[] {Datas.STRING, Datas.DOUBLE}))

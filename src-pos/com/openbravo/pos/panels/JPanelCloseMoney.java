@@ -110,7 +110,7 @@ public class JPanelCloseMoney extends JPanel implements JPanelView, BeanFactoryA
         jPanelTop.setVisible(false);        
         jPanel4.setVisible(false);
         jPanel5.setVisible(false);
-        //m_jPrintCash.setVisible(false);
+        m_jPrintCash.setVisible(false);
         if (m_App.getProperties().getProperty("screen.600800") != null) {           
         if (Boolean.valueOf(m_App.getProperties().getProperty("screen.600800")).booleanValue() == true) {             
                    jPanelTop.setVisible(true);
@@ -209,7 +209,8 @@ public class JPanelCloseMoney extends JPanel implements JPanelView, BeanFactoryA
         m_jMinDate.setText(m_PaymentsToClose.printDateStart());
         m_jMaxDate.setText(m_PaymentsToClose.printDateEnd());
         
-        if (m_PaymentsToClose.getPayments() != 0 || m_PaymentsToClose.getSales() != 0) {
+        if (m_PaymentsToClose.getPayments() != 0 ||
+                m_PaymentsToClose.getSales() != 0) {
 
             m_jPrintCash.setEnabled(true);
             m_jCloseCash.setEnabled(true);

@@ -910,6 +910,33 @@ public abstract class JPanelTicket extends JPanel implements JPanelView, BeanFac
 
     }
 
+    private void applyDiscount(Boolean percent, String current, Boolean waiting,
+            int first, int last)
+    {
+        if (current.length() == 0 || waiting)
+            return;
+                
+        Double value = Double.parseDouble(current) / 100;
+        
+        if ((!percent || value < 1) && value > 0) {
+            String sdiscount = percent ? 
+                    Formats.PERCENT.formatValue(value)
+                    : Formats.CURRENCY.formatValue(value);
+            
+            for (int number = first; number < last; number++) {
+                TicketLineInfo line = m_oTicket.getLine(number);
+                if(line.applyDiscount(percent,value)){
+                    line.setProperty("product.name", line.getProductName() + " - " + sdiscount);
+                    paintTicketLine(number, line);
+                }
+            }
+        }
+        m_jPrice.setText("");
+        jAmount.setText("1");
+        refreshTicket();
+        return;
+    }
+    
     /**
      *
      * @param prod
@@ -952,7 +979,8 @@ public abstract class JPanelTicket extends JPanel implements JPanelView, BeanFac
             String s = action.substring(1);
             try {
                 Integer.parseInt(s);
-                if (!stateWaitingForPrice && incProductByCode(s)) {
+                if (current.length() > 0 && 
+                        !stateWaitingForPrice && incProductByCode(s)) {
                     setLineState(current);
                 }
             } catch (NumberFormatException e) {
@@ -1005,34 +1033,16 @@ public abstract class JPanelTicket extends JPanel implements JPanelView, BeanFac
                 }
                 return;
             case "discountAbsolute": 
-                System.out.println("discount OK ABs");
-                return;//TODO
+                applyDiscount(false,current,stateWaitingForPrice
+                        ,currentLine,currentLine+1);
+                return;
             case "discountSingleLine": //discount on total
+                applyDiscount(true,current,stateWaitingForPrice
+                        ,currentLine,currentLine+1);
+                return;
             case "discount": //discount on total
-                int first, last;
-                if("discount".equals(action)){
-                    first = 0;
-                    last = m_oTicket.getLinesCount();
-                }else{
-                    first = currentLine;
-                    last = currentLine + 1;
-                }
-                
-                if (current.length() == 0 || stateWaitingForPrice)
-                    return;
-                Double rate = Double.parseDouble(current) / 100;
-                if (rate < 1 && rate > 0) {
-                    String sdiscount = Formats.PERCENT.formatValue(rate);
-                    for (int number = first; number < last; number++) {
-                        TicketLineInfo line = m_oTicket.getLine(number);
-                        line.applyDiscount(rate);
-                        line.setProperty("product.name", line.getProductName() + " - " + sdiscount);
-                        paintTicketLine(number,line);
-                    }
-                }
-                m_jPrice.setText("");
-                jAmount.setText("1");
-                refreshTicket();
+                applyDiscount(true,current,stateWaitingForPrice
+                        ,0,m_oTicket.getLinesCount());
                 return;
             case "cancel":
                 if(m_oTicket.getLinesCount()==0)
@@ -1679,6 +1689,7 @@ public abstract class JPanelTicket extends JPanel implements JPanelView, BeanFac
                 } else {
                     script.put("taxes", taxcollection);
                 }
+                script.put("Format", Formats.class);
                 script.put("taxeslogic", taxeslogic);
                 script.put("ticket", ticket);
                 script.put("place", ticketext);

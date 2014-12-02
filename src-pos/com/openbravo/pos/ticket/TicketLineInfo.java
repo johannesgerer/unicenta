@@ -596,11 +596,16 @@ public class TicketLineInfo implements SerializableWrite, SerializableRead, Seri
 
 }
 
-    public void applyDiscount(Double rate) {
-        double old = getPriceTax(),
-                newP = RoundUtils.round(old * (1-rate));
-        setPriceTax(newP);
-        addDiscountTax(RoundUtils.round(old-newP));
+    public boolean applyDiscount(Boolean percent, Double value) {
+        double oldV = getValue(),
+                newV = RoundUtils.round(
+                        percent ? oldV * (1-value)
+                                : oldV - value);
+        if(newV<0)
+            return false;
+        setPriceTax(newV/multiply);
+        addDiscountTax(RoundUtils.round(oldV-newV));
+        return true;
     }
 
 
