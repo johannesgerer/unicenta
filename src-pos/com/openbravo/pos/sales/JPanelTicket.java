@@ -241,7 +241,7 @@ public abstract class JPanelTicket extends JPanel implements JPanelView, BeanFac
         jAmount.setText("1");
 
         m_ticketsbag = getJTicketsBag();
-        m_jPanelBag.add(m_ticketsbag.getBagComponent(), BorderLayout.LINE_START);
+        //m_jPanelBag.add(m_ticketsbag.getBagComponent(), BorderLayout.LINE_START);
         add(m_ticketsbag.getNullComponent(), "null");
 
         m_ticketlines = new JTicketLines(dlSystem.getResourceAsXML("Ticket.Line"));
@@ -260,6 +260,7 @@ public abstract class JPanelTicket extends JPanel implements JPanelView, BeanFac
         m_jButtonsExt.remove(m_jbtnconfig);
         jPanel2.remove(m_jEditLine);
         jPanel2.remove(m_jList);
+        jPanel2.remove(m_jDelete);
         jPanel2.remove(jEditAttributes);
         m_jPanContainer.remove(m_jContEntries);
         m_jPanTotals.remove(m_jLblTotalEuros3);
