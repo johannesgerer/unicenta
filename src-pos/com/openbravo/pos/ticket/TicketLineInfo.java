@@ -455,7 +455,7 @@ public class TicketLineInfo implements SerializableWrite, SerializableRead, Seri
     }
     
     public double getDiscount() {
-        return price.discount * multiply * (1.0 + getTaxRate());
+        return price.discount  * (1.0 + getTaxRate());
     }
 
     /**
