@@ -35,6 +35,9 @@ import com.openbravo.pos.scripting.ScriptException;
 import com.openbravo.pos.scripting.ScriptFactory;
 import java.awt.Dimension;
 import java.awt.event.KeyEvent;
+import java.io.FileNotFoundException;
+import java.io.PrintWriter;
+import java.io.UnsupportedEncodingException;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -44,6 +47,8 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.UUID;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableColumnModel;
@@ -269,7 +274,7 @@ public class JPanelCloseMoney extends JPanel implements JPanelView, BeanFactoryA
               
        }   
     
-    private void printPayments(String report) {
+    private void printPayments(String report, String filename) {
         
         String sresource = m_dlSystem.getResourceAsXML(report);
         if (sresource == null) {
@@ -279,10 +284,23 @@ public class JPanelCloseMoney extends JPanel implements JPanelView, BeanFactoryA
             try {
                 ScriptEngine script = ScriptFactory.getScriptEngine(ScriptFactory.VELOCITY);
                 script.put("payments", m_PaymentsToClose);
-                script.put("nosales",result.toString());                
-                m_TTP.printTicket(script.eval(sresource).toString());
+                script.put("nosales", result.toString());
+                String scrResult = script.eval(sresource).toString();
+
+                if (true) {
+                    PrintWriter writer;
+                    try {
+                        writer = new PrintWriter(filename, "UTF-8");
+                        writer.println(scrResult);
+                        writer.close();
+                    } catch (FileNotFoundException | UnsupportedEncodingException ex) {
+                        Logger.getLogger(JPanelCloseMoney.class.getName()).log(Level.SEVERE, null, ex);
+                    }
+                } else {
+                    m_TTP.printTicket(scrResult);
+                }
 // JG 16 May 2012 use multicatch
-            } catch (    ScriptException | TicketPrinterException e) {
+            } catch (ScriptException | TicketPrinterException e) {
                 MessageInf msg = new MessageInf(MessageInf.SGN_WARNING, AppLocal.getIntString("message.cannotprintticket"), e);
                 msg.show(this);
             }
@@ -714,7 +732,8 @@ public class JPanelCloseMoney extends JPanel implements JPanelView, BeanFactoryA
     private void m_jPrintCashTopActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_m_jPrintCashTopActionPerformed
 
         // print report
-        printPayments("Printer.CloseCash");
+        //disabled:
+        //printPayments("Printer.CloseCash");
     }//GEN-LAST:event_m_jPrintCashTopActionPerformed
 
     private void stupidIdiots() //see change log to see why
@@ -752,7 +771,10 @@ public class JPanelCloseMoney extends JPanel implements JPanelView, BeanFactoryA
                 m_PaymentsToClose.setDateEnd(dNow);
 
                 // print report
-                printPayments("Printer.CloseCash");
+                printPayments("Printer.CloseCash", String.format("%s/%010d.html",
+                        m_App.getProperties().getProperty("closecash.folder"),
+                        m_App.getActiveCashSequence()));
+               
 
                 // Mostramos el mensaje
                 //JOptionPane.showMessageDialog(this, AppLocal.getIntString("message.closecashok"), AppLocal.getIntString("message.title"), JOptionPane.INFORMATION_MESSAGE);
@@ -782,7 +804,9 @@ public class JPanelCloseMoney extends JPanel implements JPanelView, BeanFactoryA
     private void m_jPrintCashActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_m_jPrintCashActionPerformed
 
         // print report
-        printPayments("Printer.CloseCash");
+        //disabled:
+        //printPayments("Printer.CloseCash");
+        
 
     }//GEN-LAST:event_m_jPrintCashActionPerformed
 
