@@ -773,7 +773,7 @@ public class JPanelCloseMoney extends JPanel implements JPanelView, BeanFactoryA
                 // print report
                 printPayments("Printer.CloseCash", String.format("%s/%010d.html",
                         m_App.getProperties().getProperty("closecash.folder"),
-                        m_App.getActiveCashSequence()));
+                        m_App.getActiveCashSequence()) - 1);
                
 
                 // Mostramos el mensaje

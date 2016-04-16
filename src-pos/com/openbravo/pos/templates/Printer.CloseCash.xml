@@ -1,6 +1,10 @@
-<head><meta>
+<head>
 <meta charset="UTF-8">
-</meta></head>
+</meta>
+<style>
+	.bold { font-weight: bold; }
+</style>
+</head>
 <body>
     <table>
         <image>Printer.Ticket.Logo</image>
@@ -9,9 +13,9 @@
         <tr size="1">
             
         #if (${payments.printDateEnd()} == "")
-         <td align ="center" length="42" bold="true">Vorschau</td>
+         <td align ="center" length="42" class="bold">Vorschau</td>
         #else
-                 <td align ="center" length="42" bold="true">Kassenabschluss</td>
+                 <td align ="center" length="42" class="bold">Kassenabschluss</td>
         #end
         </tr>
         <tr>
@@ -42,9 +46,9 @@
         
         
         <tr>
-            <td bold="true" align ="left" length="8">Lager</td>
-            <td bold="true" align ="right" length="8">Anzahl</td>
-            <td bold="true" align ="right" length="12">Summe</td>
+            <td class="bold" align ="left" length="8">Lager</td>
+            <td class="bold" align ="right" length="8">Anzahl</td>
+            <td class="bold" align ="right" length="12">Summe</td>
         </tr>
         <tr>
             <td>------------------------------------------</td>
@@ -70,8 +74,8 @@
             <td align ="right" length="10">${payments.printProductSalesTotalUnits()}</td>
         </tr>
         <tr>
-            <td align ="left" length="29" bold="true">Total Verkäufe:</td>
-            <td align ="right" length="13" bold="true">${payments.printProductSalesTotal()}</td>
+            <td align ="left" length="29" class="bold">Total Verkäufe:</td>
+            <td align ="right" length="13" class="bold">${payments.printProductSalesTotal()}</td>
         </tr>
         <tr></tr>
         
@@ -79,8 +83,8 @@
         
         
        <tr>
-            <td bold="true" align ="left" length="30">Zahlart</td>
-            <td bold="true" align ="right" length="12">Summe</td>
+            <td class="bold" align ="left" length="30">Zahlart</td>
+            <td class="bold" align ="right" length="12">Summe</td>
         </tr> 
         <tr>
             <td>------------------------------------------</td>
@@ -99,8 +103,8 @@
             <td align ="right" length="12">${payments.printPayments()}</td>
         </tr>        
         <tr>
-            <td align ="left" length="29" bold="true">Total Zahlungen</td>
-            <td align ="right" length="13" bold="true">${payments.printPaymentsTotal()}</td>
+            <td align ="left" length="29" class="bold">Total Zahlungen</td>
+            <td align ="right" length="13" class="bold">${payments.printPaymentsTotal()}</td>
         </tr>
         <tr></tr>
         
@@ -109,8 +113,8 @@
         
         
         <tr>
-            <td bold="true" align ="left" length="32">Steuerart</td>
-            <td bold="true" align ="right" length="10">Summe</td>
+            <td class="bold" align ="left" length="32">Steuerart</td>
+            <td class="bold" align ="right" length="10">Summe</td>
         </tr> 
         <tr>
             <td>------------------------------------------</td>
@@ -129,14 +133,14 @@
             <td>------------------------------------------</td>
         </tr>        
         <tr>
-            <td align ="left" length="29" bold="true">Total</td>
-            <td align ="right" length="13" bold="true">${payments.printSalesTotal()}</td>
+            <td align ="left" length="29" class="bold">Total</td>
+            <td align ="right" length="13" class="bold">${payments.printSalesTotal()}</td>
         </tr>
         
         <tr></tr>
         <tr>
-            <td bold="true" align ="left" length="21">Bon Abbrüche</td>
-            <td bold="true" align ="right" length="21"></td>
+            <td class="bold" align ="left" length="21">Bon Abbrüche</td>
+            <td class="bold" align ="right" length="21"></td>
         </tr>
         <tr>
             <td>------------------------------------------</td>
@@ -156,7 +160,7 @@
         </tr>
         <tr></tr>
         <tr>
-            <td align ="left" length="32" bold="true">Kassenöffnungen ohne Verkauf</td>
+            <td align ="left" length="32" class="bold">Kassenöffnungen ohne Verkauf</td>
             <td align ="right" length="10">${nosales}</td>
         </tr>
 <!-- End -->    
