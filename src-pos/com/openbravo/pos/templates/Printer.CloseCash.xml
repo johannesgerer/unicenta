@@ -122,13 +122,9 @@
         #foreach ($line in $payments.getSaleLines())
         <tr>
             <td align ="left" length="29">${line.printTaxName()}</td>
-            <td align ="right" length="13">${line.printTaxes()}</td>
+            <td align ="right" length="13">${line.printTotal()}</td>
         </tr> 
         #end  
-        <tr>
-            <td align ="left" length="29">Netto</td>
-            <td align ="right" length="13">${payments.printSalesBase()}</td>
-        </tr> 
         <tr>
             <td>------------------------------------------</td>
         </tr>        

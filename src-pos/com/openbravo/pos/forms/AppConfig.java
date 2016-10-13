@@ -87,7 +87,7 @@ public class AppConfig implements AppProperties {
         String key = "0x"+Integer.toHexString(evt.getKeyCode()).toUpperCase();
         String res = key_config.getProperty(key);
         
-        System.out.println("("+key+" -> " +res+") getKeyAction: "+evt.toString());
+        // System.out.println("("+key+" -> " +res+") getKeyAction: "+evt.toString());
         
         return res == null || "".equals(res) ? new String[0] : res.split(",");
     }

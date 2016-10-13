@@ -954,6 +954,10 @@ public class PaymentsModel {
             return Formats.CURRENCY.formatValue(m_SalesTaxes);
         }
 
+        public String printTotal() {
+            return Formats.CURRENCY.formatValue(m_SalesBase + m_SalesTaxes);
+        }
+
         /**
          *
          * @return
