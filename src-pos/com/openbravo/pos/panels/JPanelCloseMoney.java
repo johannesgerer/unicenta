@@ -287,7 +287,7 @@ public class JPanelCloseMoney extends JPanel implements JPanelView, BeanFactoryA
                 script.put("nosales", result.toString());
                 String scrResult = script.eval(sresource).toString();
 
-                if (true) {
+                if (false) {
                     PrintWriter writer;
                     try {
                         writer = new PrintWriter(filename, "UTF-8");
