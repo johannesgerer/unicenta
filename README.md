@@ -1,5 +1,5 @@
 
-This a modified version of Unicenta v3.70, that can be used with a keyboard instead of a touchscreen.
+This a modified version of Unicenta v3.70. The interface has been changed from touchscreen to an entirely keyboard-based user interface, which supports the typical and proven point-of-sale keyboard like this one:
 
 ![ars](wincor_nixdorf_keyboarb.jpg)
 
