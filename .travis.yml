@@ -1,0 +1,6 @@
+language: java
+install: ant default
+sudo: false
+jdk:
+  - openjdk7
+  - oraclejdk8
