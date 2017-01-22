@@ -1,3 +1,4 @@
+[![Build Status](https://travis-ci.org/johannesgerer/unicenta.svg?branch=master)](https://travis-ci.org/johannesgerer/unicenta)
 
 This a modified version of Unicenta v3.70. The interface has been changed from touchscreen to an entirely keyboard-based user interface, which supports the typical and proven point-of-sale keyboard like this one:
 

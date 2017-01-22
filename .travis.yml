@@ -1,5 +1,5 @@
 language: java
-install: ant default
+script: ant default
 sudo: false
 jdk:
   - openjdk7
