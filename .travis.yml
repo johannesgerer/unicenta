@@ -1,0 +1,6 @@
+language: java
+script: ant default
+sudo: false
+jdk:
+  - openjdk7
+  - oraclejdk8
