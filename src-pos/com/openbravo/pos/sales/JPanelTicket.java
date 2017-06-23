@@ -1037,7 +1037,7 @@ public abstract class JPanelTicket extends JPanel implements JPanelView, BeanFac
                 applyDiscount(false,current,stateWaitingForPrice
                         ,currentLine,currentLine+1);
                 return;
-            case "discountSingleLine": //discount on total
+            case "discountSingleLine": //discount on single
                 applyDiscount(true,current,stateWaitingForPrice
                         ,currentLine,currentLine+1);
                 return;
